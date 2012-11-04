@@ -9,7 +9,7 @@ def read(bot):
     global Bot
     Bot = bot
     if bot.remote['nick'] and bot.remote['nick'] != bot.nick:
-        if bot.remote['message'].startswith("!"):
+        if bot.remote['message'].startswith(bot.config.get('general', 'prefix')):
             args = bot.remote['message'][1:].rstrip().split(" ")
             command = args[0].lower()
             alibrary = {

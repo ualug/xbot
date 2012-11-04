@@ -6,7 +6,7 @@ from ConfigParser import ConfigParser
 
 if __name__ == "__main__":
 	config = ConfigParser()
-	if config.read('/etc/xbot/xbot.conf'):
+	if config.read('xbot.conf'):
 		for conf in config.__dict__['_sections']:
 			possible_network = re.match('^network:(.*?)$', conf).group(0).strip()
 			if possible_network:

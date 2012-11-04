@@ -53,6 +53,10 @@ INSTALLATION INSTRUCTIONS
 	[module: wolframalpha]
     ; below entry required for wolframalpha module
     wa_app_id = wolfram-alpha-app-id
+    
+    [general]
+    
+    prefix = !
 
 3. Give 'bot' file execute permissions, and run ./bot
 4. Enjoy!
