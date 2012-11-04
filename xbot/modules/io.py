@@ -15,7 +15,6 @@ def read(bot):
             command = args[0].lower()
             alibrary = {
                 'reload':       lambda: bot._reload(args),
-                'help':         lambda: "Available commands: %s" % ', '.join(sorted(alibrary.keys() + clibrary.keys())),
                 'voice':        lambda: voice(args),
                 'nick':         lambda: cnick(args),
                 'release':      lambda: release(args),
@@ -32,7 +31,7 @@ def read(bot):
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
-                'help':         lambda: "Available commands: %s" % ', '.join(sorted(clibrary.keys())),
+                'help':         lambda: show_help(bot, alibrary, clibrary),
                 'time':         lambda: time(bot, args),
                 'say':          lambda: say(bot, args),
                 'calc':         lambda: wolframalpha.wa(bot, args),
@@ -100,6 +99,14 @@ def read(bot):
             reply(bot.previous['user'], "Message from %s: Error #%s: %s" % (bot.remote['server'], bot.remote['mid'], bot.remote['message']))
         if not bot.init['joined'] and not bot.init['registered']:
             autojoin()
+
+def show_help(bot, a, c):
+    if bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]:
+        coms = a.keys() + c.keys()
+    else:
+        coms = c.keys()
+    
+    return "Available commands: %s" % ', '.join(sorted(coms))
 
 def autojoin():
     channels = Bot.config.get(Bot.network, 'channels').split(",")
