@@ -3,3 +3,4 @@
 build
 *.db
 xbot.conf
+src

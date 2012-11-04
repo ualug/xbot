@@ -15,6 +15,7 @@ def read(bot):
             command = args[0].lower()
             alibrary = {
                 'reload':       lambda: bot._reload(args),
+                'help':         lambda: "Available commands: %s" % ', '.join(sorted(alibrary.keys() + clibrary.keys())),
                 'voice':        lambda: voice(args),
                 'nick':         lambda: cnick(args),
                 'release':      lambda: release(args),
@@ -26,7 +27,8 @@ def read(bot):
                 'perms':        lambda: perms(args),
                 'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
                 'raw':          lambda: raw(args),
-                'prefix':       lambda: set_prefix(bot, args)
+                'prefix':       lambda: set_prefix(bot, args),
+                'jsreset':      lambda: js.js_reset(bot)
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
@@ -56,8 +58,10 @@ def read(bot):
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
                     if bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]:
-                        alibrary[command]()
+                        result = alibrary[command]()
                         bot.previous['user'] = bot.remote['sendee']
+                        if result:
+                            reply(bot.remote['sendee'], result)
                     else:
                         if bot.voice:
                             reply(bot.remote['sendee'], "%s: Can't do that, noob." % bot.remote['nick'])
