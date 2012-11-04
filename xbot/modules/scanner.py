@@ -21,7 +21,7 @@ def scan(bot, message = None):
         if bot.remote['receiver'] not in bot.inv['cleverbot']:
             bot.inv['cleverbot'][bot.remote['receiver']] = cleverbot.CleverBot()
         query = bot.remote['message'][len(bot.nick)+2:].decode('ascii', 'ignore')
-        results.append("%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(query))))
+        results.append("%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(bot, query))))
         #bot._sendq(("NOTICE", bot.remote['nick']), "This feature has been disabled.")
     
     # per 10% chance, count uppercase and act shocked

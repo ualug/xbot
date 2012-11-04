@@ -13,7 +13,10 @@ class CleverBot(object):
             'linePOST', 'lineChoices', 'lineChoicesAbbrev', 'typingData', 'divert'
         ]
     
-    def query(self, thought):
+    def query(self, bot, thought):
+        if thought == "help":
+            return "Use %shelp" % bot.prefix
+        
         self.params['stimulus'] = thought
         data = urllib.urlencode(self.params)
         data += '&icognocheck=' + hashlib.md5(data[9:29]).hexdigest()

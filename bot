@@ -1,18 +1,34 @@
 #!/usr/bin/python
 
+import StringIO
 import xbot
 import re
 from ConfigParser import ConfigParser
 
+default_cfg = StringIO.StringIO("""\
+[module: botdb]
+type = sqlite
+path = xbot.db
+
+[module: usage]
+two_degrees = off
+orcon = off
+
+[general]
+prefix = !
+""")
+
 if __name__ == "__main__":
-	config = ConfigParser()
-	if config.read('xbot.conf'):
-		for conf in config.__dict__['_sections']:
-			possible_network = re.match('^network:(.*?)$', conf).group(0).strip()
-			if possible_network:
-				config.active_network = possible_network
-				bot = xbot.Initialise([server.strip().split(':') for server in config.get(possible_network, 'servers').split(',')], config)
-				bot.run()
-	else:
-		print "Error: Cannot read xBot configuration file."
-		print "Please see INSTALL for help."
+    config = ConfigParser()
+    config.readfp(default_cfg)
+    
+    if config.read('xbot.conf'):
+        for conf in config.__dict__['_sections']:
+            possible_network = re.match('^network:(.*?)$', conf)
+            if possible_network:
+                possible_network = possible_network.group(0).strip()
+                config.active_network = possible_network
+                bot = xbot.Initialise([server.strip().split(':') for server in config.get(possible_network, 'servers').split(',')], config)
+                bot.run()
+    else:
+        print "Error: Cannot read configuration file."
