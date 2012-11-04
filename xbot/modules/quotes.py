@@ -1,7 +1,8 @@
 from util import *
+from botdb import *
+from random import choice
 import datetime
 import peewee
-from botdb import *
 import re
 
 def get_quote(bot, args):
@@ -20,7 +21,7 @@ def get_quote(bot, args):
         channel = bot.remote['receiver']
         nick = bot.remote['nick']
         
-        if args[1].lower() != bot.nick.lower():
+        if not args[1].lower() in bot.nick.lower():
             if len(args) == 2:
                 if args[1] != "*":
                     quotes = Quote.select().where(Quote.channel == channel, Quote.nick ** ("%%%s%%" % args[1]))
@@ -41,50 +42,44 @@ def get_quote(bot, args):
                 search = ' '.join(args[2:])
                 if args[1] != "*":
                     if search.startswith("/") and search.endswith("/"):
-                        return "No regexp for you."
-                        #type = "regexp"
-                        #sql = "SELECT * FROM quotes WHERE channel = ? AND nick REGEXP ? AND message REGEXP ?"
-                        #quotes = peewee.RawQuery(botdb.Quote, sql, channel, args[1], search[1:-1])
+                        type = "regexp"
+                        quotes = Quote.select().where(Quote.channel == channel, Quote.nick ** ("%%%s%%" % args[1]))
+                        regexp = search[1:-1]
                     else:
                         type = "keywords"
-                        quotes = Quote.select().where(Quote.channel == channel, Quote.nick ** "%"+args[1]+"%", Quote.message ** ("%%%s%%" % search[1:-1]))
+                        quotes = Quote.select().where(Quote.channel == channel, Quote.nick ** ("%%%s%%" % args[1]), Quote.message ** ("%%%s%%" % search[1:-1]))
                 else:
                     if search.startswith("/") and search.endswith("/"):
-                        return "No regexp for you."
-                        #type = "regexp"
-                        #sql = "SELECT * FROM quotes WHERE channel = ? AND nick != ? AND message REGEXP ?"
-                        #quotes = peewee.RawQuery(botdb.Quote, sql, channel, re.escape(bot.nick), search[1:-1])
+                        type = "regexp"
+                        quotes = Quote.select().where(Quote.channel == channel, Quote.nick != re.escape(bot.nick))
+                        regexp = search[1:-1]
                     else:
                         type = "keywords"
                         quotes = Quote.select().where(Quote.channel == channel, Quote.nick != re.escape(bot.nick), Quote.message ** ("%%%s%%" % search[1:-1]))
                 
-                num = quotes.count()
-                if num > 0 and num <= 15:
-                    if num > 1:
-                        bot._sendq(("PRIVMSG", channel), '%s result%s sent.' % (num, '' if num == 1 else 's'))
-                    return output_quote(bot, quotes)
-                elif num > 15:
-                    if type == "keywords":
-                        return "%d quotes found." % num
-                    elif type == "regexp":
-                        return "%d quotes matched." % num
+                if type == "regexp":
+                    return output_quote(bot, quotes, regexp)
                 else:
-                    if type == "keywords":
-                        return "No quotes with keywords |%s| found." % search
-                    elif type == "regexp":
-                        return "No quotes with regexp %s matched." % search
+                    return output_quote(bot, quotes)
         else:
             return "Nah. My own quotes are too contaminated."
     else:
         return give_help(bot, args[0], "<nick|*> [<keywords|/regexp/>]")
 
-def output_quote(bot, quotes):
+def output_quote(bot, quotes, regexp =  False):
     import scanner
-    from random import choice
     
     ids = []
+    if regexp != False:
+        regexp = re.compile(regexp, re.L | re.M | re.U)
     for q in quotes.naive():
+        if regexp != False and regexp.search(q.message) == None:
+            continue
         ids.append(q.id)
+    
+    if len(ids) == 0:
+        return "No matching quotes were found."
+        
     quote = Quote.get(Quote.id == choice(ids))
 
     fmt = "%s | "
