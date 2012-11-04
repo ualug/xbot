@@ -1,4 +1,3 @@
 peewee
-pubsub
 dnspython
 lxml
