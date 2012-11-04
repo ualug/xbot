@@ -53,7 +53,8 @@ def read(bot):
                 'imdb':         lambda: imdb.info(bot, args),
                 'usage':        lambda: usage.usage(bot, args),
                 'maxx':         lambda: maxx.times(bot, args),
-                'js':           lambda: js.execute(bot, args)
+                'js':           lambda: js.execute(bot, args),
+                'cs':           lambda: js.execute(bot, args)
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:

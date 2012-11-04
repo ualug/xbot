@@ -14,6 +14,8 @@ def execute(bot, args):
             
             bot.inv['js'].enter()
             for j in os.listdir(os.path.join(os.path.dirname(__file__), "js")):
+                if not re.match(".+\.js$", j):
+                    continue
                 f = open(os.path.join(os.path.dirname(__file__), "js", j), 'r')
                 bot.inv['js'].eval(f.read())
             bot.inv['js'].leave()
@@ -25,7 +27,10 @@ def execute(bot, args):
             'prefix':   bot.prefix
         })
         
-        command = "(function(){return %s}(this))" % ' '.join(args[1:])
+        if args[0] == "js":
+            command = "(function(){return %s}(this))" % ' '.join(args[1:])
+        elif args[0] == "cs":
+            command = "CoffeeScript.eval('%s')" % ' '.join(args[1:])
         
         #bot.inv['js'].add_global('hashlib', __import__('hashlib'))
         
@@ -39,7 +44,7 @@ def execute(bot, args):
         except RuntimeError:
             return "Took too long, nigga."
         except PyV8.JSError as e:
-            return str(e)
+            result = str(e)
         
         bot.inv['js'].leave()
         
@@ -59,7 +64,10 @@ def execute(bot, args):
                 return result
         else:
             return None
-    return give_help(bot, args[0], "<js_expr>|//reset")
+    if args[0] == "js":
+        return give_help(bot, args[0], "<js_expr>|//reset")
+    elif args[0] == "cs":
+        return give_help(bot, args[0], "<coffee_expr>")
 
 def js_reset(bot):
     del bot.inv['js']
