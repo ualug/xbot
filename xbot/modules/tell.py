@@ -1,3 +1,4 @@
+from util import *
 def answer(bot, args):
     if len(args) >= 4:
         if args[2] == "about":
@@ -20,5 +21,5 @@ def answer(bot, args):
                 else:
                     return "Triggering this command privately is not allowed."
             else:
-                return None
-    return "Usage: !%s <nick> about <item>" % args[0]
+                return "Dunno about that, nigga."
+    return give_help(bot, args[0], "<nick> about <item>")

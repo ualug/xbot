@@ -1,10 +1,11 @@
+from util import *
 def twss(bot, args):
     if len(args) > 1:
         quote = ' '.join(args[1:])
         if quote.startswith('"') and quote.endswith('"'):
             return "%s <- that's what she said." % quote
         else:
-            return 'Usage: !%s "<quote>"' % args[0]
+            return give_help(bot, args[0], "<quote>")
     return "That's what she said."
 
 def spin(bot, args):
@@ -41,7 +42,7 @@ def cookie(bot, args):
         else:
             return "Triggering this command privately is not allowed."
     else:
-        return "Usage: !%s <nick>" % args[0]
+        return give_help(bot, args[0], "<nick>")
 
 def choose(bot, args):
     import random
@@ -65,7 +66,7 @@ def choose(bot, args):
         if choice.endswith("?") and len(choice) > 1: choice = choice[:-1]
         return "%s %s%s." % (answer, intermediary, choice)
     else:
-        return "Usage: !%s <item 1> or <item 2> [or <item n>] where 1 != 2 != n" % args[0]
+        return give_help(bot, args[0], "<item 1> or <item 2> [or <item n>] where 1 != 2 != n")
 
 def m8b(bot, args):
     if len(args) > 1:
@@ -76,7 +77,7 @@ def m8b(bot, args):
         ]
         return __import__('random').choice(responses)
     else:
-        return "Usage: !%s <herp>" % args[0]
+        return give_help(bot, args[0], "<herp>")
 
 def ghetto(bot, args):
     if len(args) == 2:
@@ -99,7 +100,7 @@ def ghetto(bot, args):
         
         return ghetto_name[:-1]
     
-    return "Usage: !%s <first name>" % args[0]
+    return give_help(bot, args[0], "<first name>")
     
 def sorting_hat(bot, args):
     if len(args) == 2:
@@ -113,7 +114,7 @@ def sorting_hat(bot, args):
         else:
             return "It's a secret."
             
-    return "Usage: !%s <nick>" % args[0]
+    return give_help(bot, args[0], "<nick>")
 
 def lotto(bot, args):
     import random

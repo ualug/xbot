@@ -1,3 +1,4 @@
+from util import *
 import datetime
 import scanner
 
@@ -9,47 +10,48 @@ def read(bot):
     global Bot
     Bot = bot
     if bot.remote['nick'] and bot.remote['nick'] != bot.nick:
-        if bot.remote['message'].startswith(bot.config.get('general', 'prefix')):
+        if bot.remote['message'].startswith(bot.prefix):
             args = bot.remote['message'][1:].rstrip().split(" ")
             command = args[0].lower()
             alibrary = {
-                'reload':        lambda: bot._reload(args),
+                'reload':       lambda: bot._reload(args),
                 'voice':        lambda: voice(args),
-                'nick':            lambda: cnick(args),
-                'release':        lambda: release(args),
-                'identify':        lambda: ident(),
-                'join':            lambda: join(args),
-                'part':            lambda: part(args),
-                'kick':            lambda: kick(args),
-                'mode':            lambda: mode(args),
+                'nick':         lambda: cnick(args),
+                'release':      lambda: release(args),
+                'identify':     lambda: ident(),
+                'join':         lambda: join(args),
+                'part':         lambda: part(args),
+                'kick':         lambda: kick(args),
+                'mode':         lambda: mode(args),
                 'perms':        lambda: perms(args),
-                'eval':            lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
-                'raw':            lambda: raw(args)
+                'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
+                'raw':          lambda: raw(args),
+                'prefix':       lambda: set_prefix(bot, args)
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
-                'help':            lambda: "Available commands: %s" % ', '.join(sorted(clibrary.keys())),
-                'time':            lambda: time(bot, args),
-                'say':            lambda: say(bot, args),
-                'calc':            lambda: wolframalpha.wa(bot, args),
-                'go':            lambda: googleapi.search(bot, args),
-                'lookup':        lambda: dnstools.lookup(bot, args),
-                'wiki':            lambda: dnstools.wiki(bot, args),
-                'tell':            lambda: tell.answer(bot, args),
-                'twss':            lambda: fun.twss(bot, args),
-                'cookie':        lambda: fun.cookie(bot, args),
-                'spin':            lambda: fun.spin(bot, args),
-                'man':            lambda: man.man(bot, args),
-                'choose':        lambda: fun.choose(bot, args),
+                'help':         lambda: "Available commands: %s" % ', '.join(sorted(clibrary.keys())),
+                'time':         lambda: time(bot, args),
+                'say':          lambda: say(bot, args),
+                'calc':         lambda: wolframalpha.wa(bot, args),
+                'go':           lambda: googleapi.search(bot, args),
+                'lookup':       lambda: dnstools.lookup(bot, args),
+                'wiki':         lambda: dnstools.wiki(bot, args),
+                'tell':         lambda: tell.answer(bot, args),
+                'twss':         lambda: fun.twss(bot, args),
+                'cookie':       lambda: fun.cookie(bot, args),
+                'spin':         lambda: fun.spin(bot, args),
+                'man':          lambda: man.man(bot, args),
+                'choose':       lambda: fun.choose(bot, args),
                 '8ball':        lambda: fun.m8b(bot, args),
-                'ghetto':        lambda: fun.ghetto(bot, args),
-                'sortinghat':     lambda: fun.sorting_hat(bot, args),
+                'ghetto':       lambda: fun.ghetto(bot, args),
+                'sortinghat':   lambda: fun.sorting_hat(bot, args),
                 'lotto':        lambda: lotto.get_results(bot, args),
-                'quotes':        lambda: quotes.get_quote(bot, args),
-                'imdb':            lambda: imdb.info(bot, args),
+                'quotes':       lambda: quotes.get_quote(bot, args),
+                'imdb':         lambda: imdb.info(bot, args),
                 'usage':        lambda: usage.usage(bot, args),
-                'maxx':            lambda: maxx.times(bot, args),
-                'js':            lambda: js.execute(bot, args)
+                'maxx':         lambda: maxx.times(bot, args),
+                'js':           lambda: js.execute(bot, args)
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
@@ -119,7 +121,7 @@ def time(bot, args):
         bedtime = " (bedtime)" if hour >= 0 and hour <= 7 else ''
         return "It is now %s%s on %s NZT." % (now.strftime("%I:%M%p"), bedtime, now.strftime("%A, %d %B %Y"))
     else:
-        return "Usage: !%s" % args[0]
+        return give_help(bot, args[0], "")
 
 def voice(args):
     args = [arg.lower() for arg in args]
@@ -182,7 +184,7 @@ def topic(bot, args):
         else:
             write(("TOPIC", Bot.remote['sendee']), ' '.join(args[1:]))
     else:
-        reply(Bot.remote['sendee'], "Usage: !%s <topic>" % args[0])
+        reply(Bot.remote['sendee'], "Usage: %s%s <topic>" % (bot.prefix, args[0]))
 
 def mode(args):
     if len(args) >= 2:
@@ -227,7 +229,7 @@ def say(bot, args):
         else:
             write(("PRIVMSG", Bot.remote['sendee']), 'o_O')
     else:
-        return "Usage: !say [#channel] [/me] <message>"
+        return give_help(bot, args[0], "[#channel] [/me] <message>")
         
 def raw(args):
     arguments = ' '.join(args[1:]).split(" :")
@@ -235,3 +237,9 @@ def raw(args):
     try: message = arguments[1]
     except: message = None
     Bot._sendq(left, message)
+
+def set_prefix(bot, args):
+    if len(args) > 1:
+        bot.prefix = args[1]
+    else:
+        return give_help(bot, args[0], "<char>")

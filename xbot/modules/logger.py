@@ -4,7 +4,7 @@ import botdb
 
 def log(bot, channel, nick, message):
     date = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
-    file = open('/var/log/xbot/%s.txt' % channel, 'a+')
+    file = open('%s.txt' % channel, 'a+')
     if message.startswith("\x01ACTION"):
         file.write("%s * %s %s\r\n" % (date, nick, message[8:-1]))
         action = 1
@@ -18,13 +18,14 @@ def log(bot, channel, nick, message):
     
     db = botdb.BotDB(bot).connect()
     
-    cursor = db.cursor()
     if not message.startswith("!quote"):
-        if action: message = message[8:-1]
-        cursor.execute("""
-                            INSERT INTO `quotes`
-                                (time, channel, nick, action, message)
-                            VALUES
-                                (%s, %s, %s, %s, %s)
-        """, [int(time.time()), channel, nick, action, message])
-        db.commit()
+        if action:
+            message = message[8:-1]
+        
+        q = botdb.Quote()
+        q.time = int(time.time())
+        q.channel = channel
+        q.nick = nick
+        q.action = action == 1
+        q.message = message
+        q.save()

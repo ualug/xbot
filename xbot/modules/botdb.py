@@ -1,13 +1,43 @@
-import MySQLdb
+import peewee
 
 class BotDB(object):
 
     def __init__(self, bot):
-        self.host = bot.config.get('module: botdb', 'db_host')
-        self.user = bot.config.get('module: botdb', 'db_user')
-        self.pw = bot.config.get('module: botdb', 'db_pass')
-        self.db = bot.config.get('module: botdb', 'db_name')
-    
+        self.db = {
+            'sqlite'     : lambda:
+                peewee.SqliteDatabase(bot.config.get('module: botdb', 'path')),        
+            'postgresql' : lambda:
+                peewee.PostgresqlDatabase(
+                    bot.config.get('module: botdb', 'name'),
+                    host=bot.config.get('module: botdb', 'host'),
+                    user=bot.config.get('module: botdb', 'user'),
+                    passwd=bot.config.get('module: botdb', 'pass')
+                ),
+            'postgresql' : lambda:
+                peewee.MysqlDatabase(
+                    bot.config.get('module: botdb', 'name'),
+                    host=bot.config.get('module: botdb', 'host'),
+                    user=bot.config.get('module: botdb', 'user'),
+                    passwd=bot.config.get('module: botdb', 'pass')
+                )
+        }[bot.config.get('module: botdb', 'type')]()
+
     def connect(self):
-        if self.host and self.user and self.pw and self.db:
-            return MySQLdb.connect(host=self.host, user=self.user, passwd=self.pw, db=self.db)
+        self.db.connect()
+        
+        try:
+            Quote.create_table()
+        except Exception:
+            pass
+    
+
+class Quote(peewee.Model):
+    id = peewee.PrimaryKeyField()
+    time = peewee.IntegerField(10)
+    channel = peewee.CharField(max_length=20)
+    nick = peewee.CharField(max_length=20)
+    action = peewee.BooleanField()
+    message = peewee.TextField()
+    
+    class Meta:
+        db_table = "quotes"

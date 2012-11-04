@@ -1,12 +1,15 @@
-import sys, os
+import os
+import sys
 import socket
-import time, datetime
+import time
+import datetime
 import traceback
 import modules
 
 class Client(object):
     def __init__(self, config):
         self.config = config
+        self.prefix = config.get('general', 'prefix')
         self.sendq = []
         self.recvq = []
         self.termop = "\r\n"

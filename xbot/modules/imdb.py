@@ -1,3 +1,4 @@
+from util import *
 import urllib, urllib2
 import json
 
@@ -12,6 +13,6 @@ def info(bot, args):
                                                             data['Genre'], 'http://www.imdb.com/title/%s/' % data['imdbID'])
             return response.encode('utf-8')
         else:
-            return '!%s: No such movie found.' % args[0]
+            return '%s%s: No such movie found.' % (bot.prefix, args[0])
     else:
-        return "Usage: !%s <movie title>" % args[0]
+        return give_help(bot, args[0], "<movie title>")

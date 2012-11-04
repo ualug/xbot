@@ -1,3 +1,4 @@
+from util import *
 import urllib2
 import json
 import datetime
@@ -7,7 +8,7 @@ def times(bot, args):
     def plural(word, num):
         return word if num == 1 else word + "s"
     
-    error = "!%s: Invalid bus stop number." % args[0]
+    error = "%s%s: Invalid bus stop number." % (bot.prefix, args[0])
     
     if len(args) == 2:
         try:
@@ -55,4 +56,4 @@ def times(bot, args):
         
         return '\n'.join(results) or "No buses imminent."
     
-    return "Usage: !%s <bus stop number>" % args[0]
+    return give_help(bot, args[0], "<bus stop number>")

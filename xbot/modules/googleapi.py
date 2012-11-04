@@ -1,3 +1,4 @@
+from util import *
 import urllib2
 import json
 
@@ -31,4 +32,4 @@ def search(bot, args):
         except IndexError:
             return "Your search did not return any results."
     else:
-        return "Usage: !%s [cr=<2-letter country code>] <query>" % args[0]
+        return give_help(bot, args[0], "[cr=<2-letter country code>] <query>")

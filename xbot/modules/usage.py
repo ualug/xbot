@@ -1,3 +1,4 @@
+from util import *
 import sys
 import urllib, urllib2
 import cookielib
@@ -14,19 +15,20 @@ def usage(bot, args):
             return "2degrees: Error, cannot find login form."
             sys.exit()
 
-        account = opener.open(form[0].get('action'), urllib.urlencode(
-            {
-                'userid': bot.config.get('module: usage', 'login'),
-                'password': bot.config.get('module: usage', 'pass'),
-                'hdnAction': 'login',
-                'hdnAuthenticationType': 'M'
-            }
-        )).read()
-        remaining = lxml.html.fromstring(account).xpath("//td[@class='tableBillamount']/text()")
-
-        if not remaining:
-            return "2degrees: Error, cannot get remaining data."
-            sys.exit()
+# TODO: config-based switch on/off
+#        account = opener.open(form[0].get('action'), urllib.urlencode(
+#            {
+#                'userid': bot.config.get('module: usage', 'login'),
+#                'password': bot.config.get('module: usage', 'pass'),
+#                'hdnAction': 'login',
+#                'hdnAuthenticationType': 'M'
+#            }
+#        )).read()
+#        remaining = lxml.html.fromstring(account).xpath("//td[@class='tableBillamount']/text()")
+#
+#        if not remaining:
+#            return "2degrees: Error, cannot get remaining data."
+#            sys.exit()
         
         orcon = lxml.html.fromstring(opener.open('http://www.orcon.net.nz/modules/usagemeter/view/CosmosController.php').read()).xpath('//dd[last()]/text()')
         if not orcon:
@@ -34,4 +36,4 @@ def usage(bot, args):
         
         return "3G: %s remaining\nADSL: %s used" % (', '.join(remaining).encode('utf-8'), orcon[0].encode('utf-8'))
     else:
-        return "Usage: !%s" % args[0]
+        return give_help(bot, args[0], "")

@@ -1,3 +1,4 @@
+from util import *
 import urllib2
 
 def man(bot, args):
@@ -12,4 +13,4 @@ def man(bot, args):
         else:
             return "That's probably bs."
     else:
-        return "Usage: !%s <binary file>" % args[0]
+        return give_help(bot, args[0], "<binary file>")

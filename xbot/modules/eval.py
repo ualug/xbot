@@ -15,6 +15,6 @@ def parse(bot, args):
                 return re.findall('(http://.*)', paste, re.S)[0]
             except IndexError:
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
-        return "!%s: error pasting output." % args[0]
+        return "%s%s: error pasting output." % (bot.prefix, args[0])
     else:    
         return result

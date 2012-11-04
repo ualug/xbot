@@ -1,3 +1,4 @@
+from util import *
 import urllib2
 import lxml.etree
 
@@ -32,7 +33,7 @@ def wa(bot, args):
         else:
             return "No acceptable mathematical result."
     else:
-        return "Usage: !%s <mathematical query>" % args[0]
+        return give_help(bot, args[0], "<mathematical query>")
 
 def xml(result, title):
     if '*' in title:

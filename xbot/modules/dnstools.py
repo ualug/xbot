@@ -1,4 +1,6 @@
-import dns.resolver, dns.reversename
+from util import *
+import dns.resolver
+import dns.reversename
 import re
 
 def lookitup(domain, type):
@@ -22,7 +24,7 @@ def lookitup(domain, type):
     return -1
 
 def lookup(bot, args):
-    usage = "Usage: !%s [-6 (IPv6), -r (rDNS)] <server>" % args[0]
+    usage = give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
     
     if len(args) in [2, 3]:
         addresses = None
@@ -59,4 +61,4 @@ def wiki(bot, args):
         else:
             return "No such article found."
         
-    return "Usage: !%s <article>" % args[0]
+    return give_help(bot, args[0], "<article>")

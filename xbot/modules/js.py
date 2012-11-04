@@ -1,3 +1,5 @@
+"""
+from util import *
 import spidermonkey as lulzsec
 import subprocess
 import re
@@ -38,4 +40,5 @@ def execute(bot, args):
             return "Too much RAM, nigga."
         except SystemError:
             return "Took too long, nigga."
-    return "Usage: !%s <js_expr>" % args[0]
+    return give_help(bot, args[0], "<js_expr>")
+"""
