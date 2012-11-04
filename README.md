@@ -8,7 +8,36 @@
 ```
 
 
-xBot - the modularised Python IRC bot. Woot!
+[xBot](//github.com/milosivanovic/xbot) - the modularised Python IRC bot. Woot!
+
+## DEPENDENCIES
+
+ - peewee
+   
+   ```
+   pip install peewee
+   ```
+
+- dnspython
+   
+   ```
+   pip install dnspython
+   # or use package manager
+   ```
+
+ - lxml
+   
+   ```
+   pip install lxml
+   # or use package manager
+   ```
+
+ - pyv8
+   
+   On Windows, use the [precompiled package](https://code.google.com/p/pyv8/downloads/list).  
+   On Linux, either [compile it](https://code.google.com/p/pyv8/wiki/HowToBuild) or use your package manager.  
+   On OS X, either compile it (see above) or use [brokenseal's binary](https://github.com/brokenseal/PyV8-OS-X).
+
 
 ## INSTALL
 

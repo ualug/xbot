@@ -1,4 +1,3 @@
-"""
 from util import *
 import spidermonkey as lulzsec
 import subprocess
@@ -41,4 +40,3 @@ def execute(bot, args):
         except SystemError:
             return "Took too long, nigga."
     return give_help(bot, args[0], "<js_expr>")
-"""
