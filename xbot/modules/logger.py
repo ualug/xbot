@@ -4,9 +4,6 @@ import datetime
 import botdb
 
 def log(bot, channel, nick, message):
-    if re.search("\\xe2", message):
-        message = re.sub("\\x02", '', message.decode('utf8')).encode('utf8')
-    
     date = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
     file = open('%s.txt' % channel, 'a+')
     if message.startswith("\x01ACTION"):

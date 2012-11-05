@@ -149,7 +149,11 @@ class Client(object):
                     pad = _pad
                 else:
                     pad = "   "
-                print "%s %s %s" % (log, pad, line.encode('string_escape').replace("\\'", "'").replace("\\\\", "\\"))
+                msg = "%s %s" % (pad, line.encode('string_escape').replace("\\'", "'").replace("\\\\", "\\"))
+                print "%s %s" % (log, msg)
+                if self.debug:
+                    for room in self.inv['rooms'].keys():
+                        self._sendq(("PRIVMSG", room), msg)
 
 class Parser(Client):
     def __init__(self, config):

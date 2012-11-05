@@ -2,6 +2,13 @@ import re
 import time
 import random
 import cleverbot
+import opengraph
+import lxml.html
+import urllib2
+
+class HeadRequest(urllib2.Request):
+    def get_method(self):
+        return "HEAD"
 
 def scan(bot, message = None):
     results = []
@@ -15,13 +22,10 @@ def scan(bot, message = None):
     # if OpenGraph not found, tries <title> tag.
     for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
         bot._debug("Found a URL: %s" % url[0])
-        if bot.debug:
+        try:
             results.append(open_graph(bot, url[0]).encode('utf8'))
-        else:
-            try:
-                results.append(open_graph(bot, url[0]).encode('utf8'))
-            except:
-                pass
+        except AttributeError:
+            pass
     
     # someone is talking to the bot
     if re.search('^%s(?:\:|,)' % re.escape(bot.nick.lower()), message_lowercase):
@@ -59,11 +63,17 @@ def scan(bot, message = None):
     except TypeError: return None
 
 def open_graph(bot, url):
-    import opengraph
-    import urllib2
     
     if url[1] == 'www.':
         url = 'http://%s' % url[0]
+    
+    bot._debug('Sending HEAD request...')
+    response = urllib2.urlopen(HeadRequest(url))
+    conttype = response.info().getheader('Content-Type')
+    bot._debug("Content-type: %s" % conttype.encode('utf8'))
+    if not re.search("html", conttype):
+        bot._debug('Abort OpenGraph scan.')
+        return None
     
     bot._debug('Fetching OpenGraph data...')
     try:
@@ -80,7 +90,6 @@ def open_graph(bot, url):
             return "\x02%s\x02" % og['title']
     else:
         bot._debug('Fall back to plain HTML.')
-        import lxml.html
         title = ""
         try:
             bot._debug('Fetching document title...')

@@ -1,5 +1,7 @@
-import urllib, urllib2
+import urllib
+import urllib2
 import hashlib
+from interruptingcow import timeout
 
 class CleverBot(object):
 
@@ -23,7 +25,12 @@ class CleverBot(object):
         self.params['stimulus'] = thought
         data = urllib.urlencode(self.params)
         data += '&icognocheck=' + hashlib.md5(data[9:29]).hexdigest()
-        responses = urllib2.urlopen("http://cleverbot.com/webservicemin", data, timeout = 30).read().split('\r')
+        
+        try:
+            with timeout(25, exception=RuntimeError):
+                responses = urllib2.urlopen("http://cleverbot.com/webservicemin", data, timeout = 30).read().split('\r')
+        except RuntimeError:
+            return "Sorry, I'm a bit slow".encode('utf8')
         
         for n in range(len(responses)):
             try: self.params[self.vars[n]] = responses[n+1]

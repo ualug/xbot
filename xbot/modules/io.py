@@ -4,7 +4,7 @@ import scanner
 import re
 
 # user modules
-import wolframalpha, googleapi, dnstools, tell, hub
+import wolframalpha, googleapi, dnstools, tell, hub, cleverbot
 import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
 
 
@@ -30,7 +30,7 @@ def read(bot):
                 'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
                 'raw':          lambda: raw(args),
                 'prefix':       lambda: set_prefix(bot, args),
-                'jsreset':      lambda: js.js_reset(bot),
+                'reset':        lambda: reset(bot, args),
                 'debug':        lambda: set_debug(bot, args)
             }
             clibrary = {
@@ -284,3 +284,14 @@ def set_debug(bot, args):
         return "\n".join(result)
     else:
         return give_help(bot, args[0], "on|off [verbose?(on|off)]")
+
+def reset(bot, args):
+    if len(args) > 1:
+        if args[1] == "js":
+            return js.js_reset(bot)
+        if args[1] == "cleverbot":
+            if bot.remote['receiver'] in bot.inv['cleverbot']:
+                del bot.inv['cleverbot'][bot.remote['receiver']]
+            return "Success: %s's cleverbot reset." % bot.remote['receiver'] 
+    
+    return give_help(bot, args[0], "js|cleverbot")
