@@ -27,30 +27,43 @@ def execute(bot, args):
             'prefix':   bot.prefix
         })
         
+        command = "(function(){try {\n"
         if args[0] == "js":
-            command = "(function(){return %s}(this))" % ' '.join(args[1:])
+            command += "return %s" % ' '.join(args[1:])
         elif args[0] == "cs":
-            command = "CoffeeScript.eval('%s')" % ' '.join(args[1:])
+            command += "return CoffeeScript.eval('%s')" % ' '.join(args[1:])
+        command += "\n} catch (e) { return e.toString(); } }(this)).toString()"
         
+        bot._debug(command)
         #bot.inv['js'].add_global('hashlib', __import__('hashlib'))
         
-        
+        bot._debug('Entering JS context...')
         bot.inv['js'].enter()
         
         try:
             bot.inv['js'].eval("this.bot = %s" % botenv)
             with timeout(10, exception=RuntimeError):
+                bot._debug('Running command...')
                 result = bot.inv['js'].eval(command)
         except RuntimeError:
+            bot._debug('Timeout.')
             return "Took too long, nigga."
         except PyV8.JSError as e:
+            bot._debug('JS error.')
             result = str(e)
+        bot._debug('Ran fine.')
         
+        bot._debug('Leaving JS context...')
         bot.inv['js'].leave()
         
         if result is not None:
+            bot._debug('Command has result.')
+            bot._debug('Converting to str...')
+            result = str(result)
+            bot._debug('Encoding to UTF-8...')
             result = unicode(result).encode('utf8')
             if len(result.split('\n')) > 4 or len(result) > 445:
+                bot._debug('Going to upload to sprunge...')
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
                 for n in range(2):
                     p = subprocess.Popen(service, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -60,9 +73,11 @@ def execute(bot, args):
                     except IndexError:
                         pass
                 return "!%s: error pasting output." % args[0]
-            else:    
+            else:
+                bot._debug('Returning locally...')
                 return result
         else:
+            bot._debug('Nothing to return.')
             return None
     if args[0] == "js":
         return give_help(bot, args[0], "<js_expr>|//reset")
@@ -70,5 +85,6 @@ def execute(bot, args):
         return give_help(bot, args[0], "<coffee_expr>")
 
 def js_reset(bot):
+    bot._debug('Destroying JS context...')
     del bot.inv['js']
     return "Success: Javascript context reset."

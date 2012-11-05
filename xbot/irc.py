@@ -1,5 +1,7 @@
 import os
+import re
 import sys
+import ssl
 import socket
 import time
 import datetime
@@ -20,10 +22,28 @@ class Client(object):
 
     def connect(self, server, port):
         socket.setdefaulttimeout(300)
+        self._debug('Opening socket...')
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((server, port))
-        self.sock = socket.ssl(self.socket)
+        self._debug('Wrapping with SSL...')
+        self.sock = ssl.wrap_socket(self.socket)
+        self._debug("Connecting to %s:%s..." % (server, port))
+        self.sock.connect((server, port))
         
+        cert = self.sock.getpeercert()
+        if cert:
+            self._debug("Certificate valid until %s\n%s." % (cert['notAfter'], cert['subject']))
+        else:
+            self._debug("Invalid certificate.")
+        
+        ciph = self.sock.cipher()
+        if ciph:
+            self._debug("Cipher: %s (%s/%d-bit)." % ciph)
+        else:
+            self._debug("No connection established.")
+            print "Couldn't connect, aborting."
+            sys.exit()
+        
+        self._debug("Connected (most probably).")
         self._loop()
 
     def disconnect(self, n, frame):
@@ -42,8 +62,8 @@ class Client(object):
                         self.recvq.append(''.join(buffer) + data)
                     else:
                         self.recvq.append(data)
-                    if self.verbose:
-                        self._log('in', ''.join(self.recvq))
+                    
+                    self._debug(''.join(self.recvq), 'in')
                     return True
                 else:
                     buffer.append(data)
@@ -74,13 +94,13 @@ class Client(object):
                 buffer = ''.join(self.sendq[:delay])
                 del self.sendq[:delay]
                 time.sleep(delay)
-            if self.verbose:
-                self._log('out', buffer)
+            self._debug(buffer, 'out')
             self.sock.write(buffer)
             if not self.sendq: break
         del self.sendq[:]
 
     def _loop(self):
+        self._debug("Starting loop...")
         p = Parser(self.config)
         while True:
             if len(self.sendq) > 0:
@@ -89,12 +109,14 @@ class Client(object):
             if self.closing:
                 self.socket.close()
                 sys.exit()
-            if not self._recv(4096): break
+            if not self._recv(4096):
+                break
             for bytes in self.recvq:
                 for line in ''.join(bytes).split(self.termop):
                     if line:
                         p.interpret(line)
-            if not self.closing: self.sendq = p.sendq
+            if not self.closing:
+                self.sendq = p.sendq
             del self.recvq[:]
 
     def _log(self, flow, buffer):
@@ -103,12 +125,30 @@ class Client(object):
             _pad = "<<<"
         elif flow == "in":
             _pad = ">>>"
+        else:
+            _pad = "---"
         for index, line in enumerate(buffer.split(self.termop)[:-1]):
             if index == 0:
                 pad = _pad
             else:
                 pad = "   "
             print "%s %s %s" % (log, pad, line.encode('string_escape').replace("\\'", "'").replace("\\\\", "\\"))
+    
+    def _debug(self, msg, flow=False):
+        if self.verbose:
+            log = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
+            if flow == "out":
+                _pad = "<<<"
+            elif flow == "in":
+                _pad = ">>>"
+            else:
+                _pad = "---"
+            for index, line in enumerate(re.split("\r?\n", msg)):
+                if index == 0:
+                    pad = _pad
+                else:
+                    pad = "   "
+                print "%s %s %s" % (log, pad, line.encode('string_escape').replace("\\'", "'").replace("\\\\", "\\"))
 
 class Parser(Client):
     def __init__(self, config):
@@ -116,7 +156,7 @@ class Parser(Client):
         self.network = config.active_network
         self.init = {
             'ident': 0, 'retries': 0, 'ready': False, 'log': True,
-            'registered': True if config.get(self.network, 'password') else False,
+            'registered': True if config.has_option(self.network, 'password') else False,
             'identified': False, 'joined': False
         }
         self.inv = {
@@ -175,7 +215,7 @@ class Parser(Client):
                 if self.init['joined']:
                     self._updateNicks()                
         else:
-            arg    = line.split(" :")[0]
+            arg = line.split(" :")[0]
             message = line.split(" :", 1)[1]
             self._init()
 
@@ -201,9 +241,16 @@ class Parser(Client):
                 self.init['ident'] = True
 
     def _ident(self):
+        print "TEST::0"
         self.nick = self.name + "_" * self.init['retries']
+        
+        if self.config.has_option(self.network, "server_pass"):
+            self.server_pass = self.config.get(self.network, "server_pass")
+            self._sendq(("PASS", self.server_pass))
+        
         self._sendq(("NICK", self.nick))
         self._sendq(("USER", self.nick, self.nick, self.nick), self.nick)
+        
         self.init['retries'] += 1
     
     def _login(self):
