@@ -14,6 +14,9 @@ class CleverBot(object):
         ]
     
     def query(self, bot, thought):
+        if bot.remote['nick'].lower() in bot.inv['banned']:
+            return None
+        
         if thought == "help":
             return "Use %shelp" % bot.prefix
         

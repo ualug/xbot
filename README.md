@@ -24,6 +24,12 @@
    pip install opengraph
    ```
 
+- [PyGithub](https://github.com/jacquev6/PyGithub)
+   
+   ```
+   pip install PyGithub
+   ```
+
 - [dnspython](http://www.dnspython.org/)
    
    ```

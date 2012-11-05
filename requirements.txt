@@ -4,3 +4,4 @@ lxml
 interruptingcow
 simplejson
 opengraph
+PyGithub

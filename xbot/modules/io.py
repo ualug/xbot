@@ -4,13 +4,14 @@ import scanner
 import re
 
 # user modules
-import wolframalpha, googleapi, dnstools, tell
+import wolframalpha, googleapi, dnstools, tell, hub
 import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
 
 
 def read(bot):
     global Bot
     Bot = bot
+    
     if bot.remote['nick'] and bot.remote['nick'] != bot.nick:
         if bot.remote['message'].startswith(bot.prefix):
             args = bot.remote['message'][1:].rstrip().split(" ")
@@ -57,7 +58,8 @@ def read(bot):
                 'maxx':         lambda: maxx.times(bot, args),
                 'js':           lambda: js.execute(bot, args),
                 'cs':           lambda: js.execute(bot, args),
-                'ts':           lambda: js.execute(bot, args)
+                'ts':           lambda: js.execute(bot, args),
+                'jslib':        lambda: hub.jslib(bot, args)
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
@@ -81,6 +83,8 @@ def read(bot):
             args = bot.remote['message'][1:-1].split()[1:]
             if type != "ACTION":
                 ctcp(type, args)
+        elif bot.remote['mid'] == "INVITE" and bot.remote['nick'].lower() not in bot.inv['banned']:
+            join([bot.remote['mid'], bot.remote['message']])
         else:
             if bot.init['registered'] and not bot.init['identified']:
                 if bot.remote['nick'] == "NickServ":
@@ -263,7 +267,7 @@ def set_prefix(bot, args):
 def set_debug(bot, args):
     result = []
     if len(args) > 2:
-        if re.search("(on|yes|true|1)", args[1]):
+        if re.search("(on|yes|true|1)", args[2]):
             bot.verbose = True
             result.append("Verbose logging: on")
         else:

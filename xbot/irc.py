@@ -214,7 +214,8 @@ class Parser(Client):
                         error_message = "Traceback (most recent call last):\n" + '\n'.join(traceback.format_exc().split("\n")[-4:-1])
                         self._sendq(("NOTICE", self.remote['sendee'] or self.admin), error_message)
                 if self.init['joined']:
-                    self._updateNicks()                
+                    self._updateNicks()
+            
         else:
             arg = line.split(" :")[0]
             message = line.split(" :", 1)[1]
