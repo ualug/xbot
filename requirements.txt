@@ -1,0 +1,4 @@
+peewee
+dnspython
+lxml
+interruptingcow
