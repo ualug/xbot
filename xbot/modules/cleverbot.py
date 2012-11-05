@@ -1,6 +1,7 @@
 import urllib
 import urllib2
 import hashlib
+import HTMLParser
 from interruptingcow import timeout
 
 class CleverBot(object):
@@ -36,4 +37,5 @@ class CleverBot(object):
             try: self.params[self.vars[n]] = responses[n+1]
             except IndexError: pass
         
-        return self.params['ttsText']
+        h = HTMLParser.HTMLParser()
+        return h.unescape(self.params['ttsText']).encode('utf8')

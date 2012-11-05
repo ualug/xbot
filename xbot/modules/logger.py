@@ -22,11 +22,10 @@ def log(bot, channel, nick, message):
     if not message.startswith("!quote"):
         if action:
             message = message[8:-1]
-        
         q = botdb.Quote()
         q.time = int(time.time())
         q.channel = channel
         q.nick = nick
         q.action = action == 1
-        q.message = message
+        q.message = message.decode('utf8').encode('ascii', 'xmlcharrefreplace')
         q.save()
