@@ -1,0 +1,6 @@
+*.pyc
+\#*.txt
+build
+*.db
+xbot.conf
+src
