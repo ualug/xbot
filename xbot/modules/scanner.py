@@ -11,6 +11,12 @@ def scan(bot, message = None):
         
     message_lowercase = bot.remote['message'].lower()
     
+    # scan for urls, check to see if OpenGraph validity and return site name and page title.
+    # if OpenGraph not found, tries <title> tag.
+    for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
+        bot._debug("Found a URL: %s" % url[0])
+        results.append(open_graph(bot, url[0]))
+        
     # scan for youtube links and show title
     for code in re.findall('(?:youtube\.com\/watch\?|youtu\.be/)(?:[A-Za-z0-9-_\.&%#=]*v=)?([A-Za-z0-9-_]+)', bot.remote['message']):
         results.append(youtube_title(code))
@@ -49,6 +55,42 @@ def scan(bot, message = None):
     results = [result for result in results if result is not None]
     try: return '\n'.join(results)
     except TypeError: return None
+
+def open_graph(bot, url):
+    import opengraph
+    import urllib2
+    
+    if url[1] == 'www.':
+        url = 'http://%s' % url[0]
+    
+    bot._debug('Fetching OpenGraph data...')
+    og = opengraph.OpenGraph(url=url)
+    
+    if og.is_valid() and 'title' in og:
+        bot._debug('Found some metadata.')
+        if 'site_name' in og:
+            return "%s: \x02%s\x02" % (og['site_name'], og['title'])
+        else:
+            return "\x02%s\x02" % og['title']
+    else:
+        import lxml.html
+        title = ""
+        if re.match('(?:youtube\.com\/watch\?|youtu\.be/)(?:[A-Za-z0-9-_\.&%#=]*v=)?([A-Za-z0-9-_]+)', url):
+            bot._debug('This looks like youtube.')
+            # Pass to the proper handler
+            return None
+        else:
+            try:
+                bot._debug('Fetching document title...')
+                title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read().decode('utf-8')).xpath("//title/text()")[0]
+            except:
+                return None
+            if title == "Google":
+                bot._debug('This looks like google.')
+                return "That's Google, why not search with !go <keywords>?"
+            else:
+                return "\x02%s\x02" % title
+    return None
 
 def youtube_title(code):
     import urllib2, simplejson

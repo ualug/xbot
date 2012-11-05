@@ -27,12 +27,12 @@ def execute(bot, args):
             'prefix':   bot.prefix
         })
         
-        command = "(function(){try {\n"
+        command = "((function(){try {\n"
         if args[0] == "js":
             command += "return %s" % ' '.join(args[1:])
         elif args[0] == "cs":
             command += "return CoffeeScript.eval('%s')" % ' '.join(args[1:])
-        command += "\n} catch (e) { return e.toString(); } }(this)).toString()"
+        command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString()"
         
         bot._debug(command)
         #bot.inv['js'].add_global('hashlib', __import__('hashlib'))

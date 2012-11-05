@@ -5,6 +5,7 @@ import scanner
 # user modules
 import wolframalpha, googleapi, dnstools, tell
 import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
+        
 
 def read(bot):
     global Bot

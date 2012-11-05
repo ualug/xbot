@@ -2,3 +2,5 @@ peewee
 dnspython
 lxml
 interruptingcow
+simplejson
+opengraph
