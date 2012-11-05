@@ -16,10 +16,10 @@ def scan(bot, message = None):
     for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
         bot._debug("Found a URL: %s" % url[0])
         if bot.debug:
-            results.append(open_graph(bot, url[0]))
+            results.append(open_graph(bot, url[0]).encode('utf8'))
         else:
             try:
-                results.append(open_graph(bot, url[0]))
+                results.append(open_graph(bot, url[0]).encode('utf8'))
             except:
                 pass
     
@@ -84,7 +84,8 @@ def open_graph(bot, url):
         title = ""
         try:
             bot._debug('Fetching document title...')
-            title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read().decode('utf-8')).xpath("//title/text()")[0]
+            title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read()).xpath("//title/text()")[0]
+            title = re.sub("[^a-zA-Z0-9\\.\-\|\s\\\\\\/!@#\$%|^&*(){}\[\]_+=<>,\?'\":;\~\`]", '', title).encode('utf8')
         except:
             return None
         if title == "Google":

@@ -227,7 +227,8 @@ class Parser(Client):
     def _sendq(self, left, right = None):
         if self.init['log'] and self.init['joined'] and left[0] == "PRIVMSG":
             if self.remote['receiver'] == self.nick: self.remote['receiver'] = self.remote['nick']
-            if type(right) != str: raise AssertionError("send queue must be <type 'str'> but was found as %s" % type(right))
+            if type(right) != str:
+                raise AssertionError("send queue must be <type 'str'> but was found as %s" % type(right))
             modules.logger.log(self, left[1], self.nick, right)
         Client._sendq(self, left, right)
     
