@@ -66,9 +66,12 @@ def open_graph(bot, url):
         url = 'http://%s' % url[0]
     
     bot._debug('Fetching OpenGraph data...')
-    og = opengraph.OpenGraph(url=url)
+    try:
+        og = opengraph.OpenGraph(url=url)
+    except:
+        og = False
     
-    if og.is_valid() and 'title' in og:
+    if og and og.is_valid() and 'title' in og:
         bot._debug('Found some metadata.')
         
         if 'site_name' in og:
@@ -76,6 +79,7 @@ def open_graph(bot, url):
         else:
             return "\x02%s\x02" % og['title']
     else:
+        bot._debug('Fall back to plain HTML.')
         import lxml.html
         title = ""
         try:
