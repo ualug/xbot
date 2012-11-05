@@ -16,6 +16,7 @@ class Client(object):
         self.recvq = []
         self.termop = "\r\n"
         self.verbose = True
+        self.debug = False
         self.closing = False
         self.version = 2.4
         self.env = sys.platform

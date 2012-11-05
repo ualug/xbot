@@ -15,11 +15,13 @@ def scan(bot, message = None):
     # if OpenGraph not found, tries <title> tag.
     for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
         bot._debug("Found a URL: %s" % url[0])
-        results.append(open_graph(bot, url[0]))
-        
-    # scan for youtube links and show title
-    for code in re.findall('(?:youtube\.com\/watch\?|youtu\.be/)(?:[A-Za-z0-9-_\.&%#=]*v=)?([A-Za-z0-9-_]+)', bot.remote['message']):
-        results.append(youtube_title(code))
+        if bot.debug:
+            results.append(open_graph(bot, url[0]))
+        else:
+            try:
+                results.append(open_graph(bot, url[0]))
+            except:
+                pass
     
     # someone is talking to the bot
     if re.search('^%s(?:\:|,)' % re.escape(bot.nick.lower()), message_lowercase):
@@ -68,6 +70,7 @@ def open_graph(bot, url):
     
     if og.is_valid() and 'title' in og:
         bot._debug('Found some metadata.')
+        
         if 'site_name' in og:
             return "%s: \x02%s\x02" % (og['site_name'], og['title'])
         else:
@@ -75,46 +78,16 @@ def open_graph(bot, url):
     else:
         import lxml.html
         title = ""
-        if re.match('(?:youtube\.com\/watch\?|youtu\.be/)(?:[A-Za-z0-9-_\.&%#=]*v=)?([A-Za-z0-9-_]+)', url):
-            bot._debug('This looks like youtube.')
-            # Pass to the proper handler
+        try:
+            bot._debug('Fetching document title...')
+            title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read().decode('utf-8')).xpath("//title/text()")[0]
+        except:
             return None
+        if title == "Google":
+            bot._debug('This looks like google.')
+            return "That's Google, why not search with !go <keywords>?"
         else:
-            try:
-                bot._debug('Fetching document title...')
-                title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read().decode('utf-8')).xpath("//title/text()")[0]
-            except:
-                return None
-            if title == "Google":
-                bot._debug('This looks like google.')
-                return "That's Google, why not search with !go <keywords>?"
-            else:
-                return "\x02%s\x02" % title
-    return None
-
-def youtube_title(code):
-    import urllib2, simplejson
-
-    try:
-        # try with embed json data (fast)
-        title = simplejson.load(urllib2.urlopen('http://www.youtube.com/oembed?url=http%%3A//www.youtube.com/watch?v%%3D%s&amp;format=json' % code, timeout = 5))['title']
-    except simplejson.JSONDecodeError:
-        # json data didn't return a title? forget about it
-        title = None
-    except urllib2.HTTPError as error:
-        # embed request not allowed? fallback to HTML (slower)
-        if error.code == 401:
-            import lxml.html
-            title = lxml.html.document_fromstring(urllib2.urlopen('http://www.youtube.com/watch?v=%s' % code, timeout = 5).read().decode('utf-8')).xpath("//title/text()")[0].split("\n")[1].strip()
-        else:
-            title = None
-            if error.code != 404:
-                raise
-    
-    if title:
-        if title != "YouTube - Broadcast Yourself.":
-            return "YouTube: \x02%s\x02" % title.encode('utf-8')
-            
+            return "\x02%s\x02" % title
     return None
 
 def count_upper(str):

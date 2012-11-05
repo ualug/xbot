@@ -32,6 +32,8 @@ def execute(bot, args):
             command += "return %s" % ' '.join(args[1:])
         elif args[0] == "cs":
             command += "return CoffeeScript.eval('%s')" % ' '.join(args[1:])
+        elif args[0] == "ts":
+            command += "return TypeScript.eval('%s')" % ' '.join(args[1:])
         command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString()"
         
         bot._debug(command)
@@ -62,6 +64,13 @@ def execute(bot, args):
             result = str(result)
             bot._debug('Encoding to UTF-8...')
             result = unicode(result).encode('utf8')
+            
+            if re.search("^JSError:", result):
+              bot._debug('Post-processing error message.')
+              result = re.sub("^JSError:\\s", '', result)
+              result = re.sub("\\s[(]\\s+@.+$", '', result)
+              
+            
             if len(result.split('\n')) > 4 or len(result) > 445:
                 bot._debug('Going to upload to sprunge...')
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
@@ -80,9 +89,11 @@ def execute(bot, args):
             bot._debug('Nothing to return.')
             return None
     if args[0] == "js":
-        return give_help(bot, args[0], "<js_expr>|//reset")
+        return give_help(bot, args[0], "<js_expr>")
     elif args[0] == "cs":
         return give_help(bot, args[0], "<coffee_expr>")
+    elif args[0] == "ts":
+        return give_help(bot, args[0], "<typescript_expr>")
 
 def js_reset(bot):
     bot._debug('Destroying JS context...')

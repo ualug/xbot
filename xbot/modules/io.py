@@ -1,11 +1,12 @@
 from util import *
 import datetime
 import scanner
+import re
 
 # user modules
 import wolframalpha, googleapi, dnstools, tell
 import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
-        
+
 
 def read(bot):
     global Bot
@@ -28,7 +29,8 @@ def read(bot):
                 'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
                 'raw':          lambda: raw(args),
                 'prefix':       lambda: set_prefix(bot, args),
-                'jsreset':      lambda: js.js_reset(bot)
+                'jsreset':      lambda: js.js_reset(bot),
+                'debug':        lambda: set_debug(bot, args)
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
@@ -54,7 +56,8 @@ def read(bot):
                 'usage':        lambda: usage.usage(bot, args),
                 'maxx':         lambda: maxx.times(bot, args),
                 'js':           lambda: js.execute(bot, args),
-                'cs':           lambda: js.execute(bot, args)
+                'cs':           lambda: js.execute(bot, args),
+                'ts':           lambda: js.execute(bot, args)
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
@@ -256,3 +259,24 @@ def set_prefix(bot, args):
         bot.prefix = args[1]
     else:
         return give_help(bot, args[0], "<char>")
+
+def set_debug(bot, args):
+    result = []
+    if len(args) > 2:
+        if re.search("(on|yes|true|1)", args[1]):
+            bot.verbose = True
+            result.append("Verbose logging: on")
+        else:
+            bot.verbose = False
+            result.append("Verbose logging: off")
+    if len(args) > 1:
+        if re.search("(on|yes|true|1)", args[1]):
+            bot.debug = True
+            result.append("Debug: on")
+        else:
+            bot.debug = False
+            result.append("Debug: off")
+        
+        return "\n".join(result)
+    else:
+        return give_help(bot, args[0], "on|off [verbose?(on|off)]")
