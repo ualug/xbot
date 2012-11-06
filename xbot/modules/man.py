@@ -7,10 +7,12 @@ def man(bot, args):
             url = "http://unixhelp.ed.ac.uk/CGI/man-cgi?%s" % args[1]
             result = urllib2.urlopen(url, timeout = 5)
             if len(result.read(401)) > 400:
-                return "Linux man page for %s: %s" % (args[1], url)
+                answer(bot, "Linux man page for %s: %s" % (args[1], url))
             else:
-                return "No man page for '%s' found." % args[1]
+                answer(bot, "No man page for '%s' found." % args[1])
         else:
-            return "That's probably bs."
+            answer(bot, "That's probably bs.")
     else:
-        return give_help(bot, args[0], "<binary file>")
+        give_help(bot, args[0], "<binary file>")
+
+register(man, "common", "man")

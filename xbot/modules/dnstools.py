@@ -23,9 +23,8 @@ def lookitup(domain, type):
             return False
     return -1
 
+
 def lookup(bot, args):
-    usage = give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
-    
     if len(args) in [2, 3]:
         addresses = None
         
@@ -39,26 +38,33 @@ def lookup(bot, args):
             elif args[1] == "-r":
                 addresses = lookitup(host, "PTR")
             else:
-                return usage
+                give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
+                return None
             
         if addresses != -1:
             if addresses:
                 plural = "others" if len(addresses) > 2 else "other"
                 others = " (%s %s)" % (len(addresses), plural) if len(addresses) > 1 else ''
-                return "Address: %s%s" % (addresses[0] if not str(addresses[0]).endswith(".") else str(addresses[0])[:-1], others)
+                answer(bot, "Address: %s%s" % (addresses[0] if not str(addresses[0]).endswith(".") else str(addresses[0])[:-1], others))
             else:
-                return "%s: NXDOMAIN" % host
+                answer(bot, "%s: NXDOMAIN" % host)
         else:
-            return "Invalid host for this type of lookup."
+            answer("Invalid host for this type of lookup.")
     else:
-        return usage
+        give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
+
+register(lookup, "common", "lookup", "dns_lookup")
+
 
 def wiki(bot, args):
     if len(args) > 1:
         result = lookitup('%s.wp.dg.cx' % '_'.join(args[1:]), 'TXT')
         if result:
-            return bot._sendq(("NOTICE", bot.remote['nick']), ''.join(str(result[0]).split('"')))
+            bot._sendq(("NOTICE", bot.remote['nick']), ''.join(str(result[0]).split('"')))
+            return None
         else:
-            return "No such article found."
-        
-    return give_help(bot, args[0], "<article>")
+            answer(bot, "No such article found.")
+    else:    
+        give_help(bot, args[0], "<article>")
+
+register(wiki, "common", "wiki", "wiki_lookup")

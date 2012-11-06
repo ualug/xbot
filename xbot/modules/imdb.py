@@ -11,8 +11,10 @@ def info(bot, args):
                                                             data['Rated'] if data['Rated'] != 'N/A' else 'Unrated',
                                                             data['imdbRating'] if data['imdbRating'] != 'N/A' else '?',
                                                             data['Genre'], 'http://www.imdb.com/title/%s/' % data['imdbID'])
-            return response.encode('utf-8')
+            answer(bot, response.encode('utf-8'))
         else:
-            return '%s%s: No such movie found.' % (bot.prefix, args[0])
+            answer(bot, '%s%s: No such movie found.' % (bot.prefix, args[0]))
     else:
-        return give_help(bot, args[0], "<movie title>")
+        give_help(bot, args[0], "<movie title>")
+
+register(info, "common", "imdb")

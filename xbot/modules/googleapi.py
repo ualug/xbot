@@ -1,4 +1,5 @@
 from util import *
+
 import urllib2
 import json
 
@@ -11,9 +12,11 @@ def search(bot, args):
             if expr:
                 country = expr.group(1).upper()
                 if country == "CN":
-                    return "google.cn? hah."
+                    answer(bot, "google.cn? hah.")
+                    return None
             else:
-                return "Invalid country code."
+                answer(bot, "Invalid country code.")
+                return None
             terms = ' '.join(args[2:])
         else:
             country = ""
@@ -26,10 +29,13 @@ def search(bot, args):
                 import scanner
                 title = "\n" + scanner.scan(bot, url)
             if country:
-                return "From %s only: %s%s" % (country, url, title)
+                answer(bot, "From %s only: %s%s" % (country, url, title))
             else:
-                return "%s%s" % (url, title)
+                answer(bot, "%s%s" % (url, title))
         except IndexError:
-            return "Your search did not return any results."
+            answer(bot, "Your search did not return any results.")
     else:
-        return give_help(bot, args[0], "[cr=<2-letter country code>] <query>")
+        give_help(bot, args[0], "[cr=<2-letter country code>] <query>")
+
+
+register(search, "common", "go", "google")

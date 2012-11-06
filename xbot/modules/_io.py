@@ -6,7 +6,8 @@ import re
 
 library = {
     'admin': {},
-    'common': {}
+    'common': {},
+    'reset': {},
 }
 
 Bot = ""
@@ -63,12 +64,9 @@ def read(bot):
                         autojoin()
             
             if bot.voice:
-                pass
-                # start scanning messages for certain data
-                #try: response = scanner.scan(bot)
-                #except (__import__('urllib2').URLError, __import__('socket').timeout): response = "fetch: response timeout exceeded."
-                #if response:
-                #    reply(bot.remote['sendee'], response)
+                #start scanning messages for certain data
+                try: scanner.scan(bot)
+                except (__import__('urllib2').URLError, __import__('socket').timeout): answer(bot, "fetch: response timeout exceeded.")
 
     else:
         if (bot.remote['mid'].startswith("4") or bot.remote['mid'].startswith("5")) and bot.remote['mid'] != "462":
@@ -80,28 +78,39 @@ def lib_register(cat, name, func):
     global library
     library[cat][name] = func
     debug("Register %s command: %s" % (cat, name))
-    lib = {
-        'admin': library['admin'].keys(),
-        'common': library['common'].keys(),
-    }
+    lib = {}
+    for k in library:
+        lib[k] = library[k].keys()
     pub.sendMessage("library", lib=lib)
 
 def lib_deregister(cat, name):
     del library[cat][name]
     debug("De-register %s command: %s" % (cat, name))
-    lib = {
-        'admin': library['admin'].keys(),
-        'common': library['common'].keys(),
-    }
+    lib = {}
+    for k in library:
+        lib[k] = library[k].keys()
     pub.sendMessage("library", lib=lib)
 
 pub.subscribe(lib_register, 'register')
 pub.subscribe(lib_deregister, 'deregister')
 
+def reset(bot, args):
+    if len(args) > 1:
+        if args[1] in library['reset']:
+            pub.sendMessage("func.reset.%s" % library['reset'][args[1]], bot=bot, args=args[2:])
+            return None
+    
+    if len(library['reset']) > 0:
+        give_help(bot, args[0], '|'.join(library['reset']))
+    else:
+        answer(bot, "No resets registered.")
+
+register(reset, "admin", "reset", "reset")
+
 def autojoin():
     channels = Bot.config.get(Bot.network, 'channels').split(",")
     for channel in channels:
-        join([None, channel.strip()])
+        join(Bot, [None, channel.strip()])
     Bot.init['joined'] = True
 
 def ctcp(type, args):
@@ -119,47 +128,72 @@ def reply(nick, message):
 pub.subscribe(reply, 'reply')
 
 
-def voice(args):
+def voice(bot, args):
     args = [arg.lower() for arg in args]
     if len(args) == 2:
         if args[1] == "off":
             write(("PRIVMSG", Bot.remote['sendee']), "\x01ACTION stays quiet.\x01")
             Bot.voice = False
+            return None
         elif args[1] == "on":
             write(("PRIVMSG", Bot.remote['sendee']), "\x01ACTION resumes normal operation.\x01")
             Bot.voice = True
+            return None
+    
+    give_help(bot, args[0], "on|off")
 
-def cnick(args):
+register(voice, "admin", "voice", "voice")
+
+def cnick(bot, args):
     if len(args) == 2:
         write(("NICK", args[1]))
         Bot.nick = args[1]
+    else:
+        give_help(bot, args[0], "<new-nick>")
 
-def release(args):
+register(cnick, "admin", "nick", "change_nick")
+
+def release(bot, args):
     if len(args) == 1:
         write(("PRIVMSG", "NickServ"), "RELEASE %s %s" % (Bot.name, Bot.config.get(Bot.network, 'password')))
         write(("PRIVMSG", Bot.remote['sendee']), "Nick released.")
+
+register(release, "admin", "release", "release")
 
 def ident():
     Bot._ident(Bot.name)
     Bot._login()
 
-def join(args):
+register(ident, "admin", "identify", "ident")
+
+def join(bot, args):
     if len(args) == 2:
         if args[1] not in Bot.inv['rooms']:
             write(("JOIN", args[1]))
         else:
-            write(("PRIVMSG", Bot.remote['sendee']), "I'm already in that channel, noob.")
-def part(args):
+            answer(bot, "I'm already in that channel, noob.")
+    else:
+        give_help(bot, args[0], "<channel>")
+
+register(join, "admin", "join", "join")
+
+def part(bot, args):
     if len(args) == 1:
         channel = Bot.remote['sendee']
     elif len(args) == 2:
         channel = args[1]
+    else:
+        give_help(bot, args[0], "[channel]")
+        return None
+    
     if channel in Bot.inv['rooms']:
         write(("PART", channel))
     else:
-        write(("PRIVMSG", Bot.remote['sendee']), "I'm not in that channel, noob.")
-    
-def kick(args):
+        answer("I'm not in that channel, noob.")
+
+register(part, "admin", "part", "part")
+
+def kick(bot, args):
     if len(args) >= 2:
         if args[1].lower() == Bot.nick.lower():
             reply(Bot.remote['sendee'], ":(")
@@ -167,7 +201,11 @@ def kick(args):
             if Bot.inv['rooms'][Bot.remote['receiver']][Bot.nick]['mode'] == "o":
                 write(("KICK", Bot.remote['sendee'], args[1]), ' '.join(args[2:]))
             else:
-                write(("PRIVMSG", Bot.remote['sendee']), "No ops lol.")
+                answer("No ops lol.")
+    else:
+        give_help(bot, args[0], "<nick>")
+
+register(kick, "admin", "kick", "kick")
 
 def topic(bot, args):
     if len(args) >= 2:
@@ -180,13 +218,19 @@ def topic(bot, args):
         else:
             write(("TOPIC", Bot.remote['sendee']), ' '.join(args[1:]))
     else:
-        reply(Bot.remote['sendee'], "Usage: %s%s <topic>" % (bot.prefix, args[0]))
+        give_help(bot, args[0], "<topic>")
 
-def mode(args):
+register(topic, "common", "topic", "topic")
+
+def mode(bot, args):
     if len(args) >= 2:
         write(("MODE", Bot.remote['sendee']), ' '.join(args[1:]))
+    else:
+        give_help(bot, args[0], "<mode>")
 
-def perms(args):
+register(topic, "admin", "mode", "mode")
+
+def perms(bot, args):
     if len(args) == 3:
         user = args[2].lower()
         if args[1] == "deny":
@@ -199,6 +243,10 @@ def perms(args):
                 Bot.inv['banned'].remove(user)
             else:
                 reply(Bot.remote['sendee'], "User wasn't denied to start with.")
+    else:
+        give_help(bot, args[0], "allow|deny <nick>")
+
+register(perms, "admin", "perms", "perms")
 
 def list(nick):
     return write(("PRIVMSG", Bot.remote['sendee']), str(Bot.inv['rooms'][Bot.remote['sendee']]))
@@ -226,33 +274,25 @@ def say(bot, args):
             write(("PRIVMSG", Bot.remote['sendee']), 'o_O')
     else:
         return give_help(bot, args[0], "[#channel] [/me] <message>")
-        
-def raw(args):
-    arguments = ' '.join(args[1:]).split(" :")
-    left = arguments[0].split()
-    try: message = arguments[1]
-    except: message = None
-    Bot._sendq(left, message)
+
+register(say, "common", "say", "say")
+
+def raw(bot, args):
+    if len(args) > 1:
+        arguments = ' '.join(args[1:]).split(" :")
+        left = arguments[0].split()
+        try: message = arguments[1]
+        except: message = None
+        Bot._sendq(left, message)
+    else:
+        give_help(bot, args[0], "<raw command>")
+
+register(raw, "admin", "raw", "raw")
 
 def _reload(bot, args):
     bot._reload(args)
 
 register(_reload, "admin", "reload", "reload")
-
-######################################################################
-'''
-
-
-def show_help(bot, a, c):
-    can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
-    can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
-    if can_do:
-        coms = a.keys() + c.keys()
-    else:
-        coms = c.keys()
-    
-    return "Available commands: %s" % ', '.join(sorted(coms))
-
 
 def set_prefix(bot, args):
     if len(args) > 1:
@@ -260,9 +300,11 @@ def set_prefix(bot, args):
             return "Invalid prefix."
         old = bot.prefix
         bot.prefix = args[1]
-        return "Prefix set to %s (was %s)." % (args[1], old)
+        answer(bot, "Prefix set to %s (was %s)." % (args[1], old))
     else:
-        return give_help(bot, args[0], "<one of: !@#$%^&*()[]{}\\|:;\"'<>.,?~`-_=+>")
+        give_help(bot, args[0], "<one of: !@#$%^&*()[]{}\\|:;\"'<>.,?~`-_=+>")
+
+register(set_prefix, "admin", "prefix", "set_prefix")
 
 def set_debug(bot, args):
     result = []
@@ -281,29 +323,20 @@ def set_debug(bot, args):
             bot.debug = False
             result.append("Debug: off")
         
-        return "\n".join(result)
+        answer(bot, "\n".join(result))
     else:
-        return give_help(bot, args[0], "on|off [verbose?(on|off)]")
+        give_help(bot, args[0], "on|off [verbose?(on|off)]")
 
-def reset(bot, args):
-    if len(args) > 1:
-        if args[1] == "js":
-            return js.js_reset(bot)
-        if args[1] == "cleverbot":
-            if bot.remote['receiver'] in bot.inv['cleverbot']:
-                del bot.inv['cleverbot'][bot.remote['receiver']]
-            return "Success: %s's cleverbot reset." % bot.remote['receiver'] 
-    
-    return give_help(bot, args[0], "js|cleverbot")
+register(set_debug, "admin", "debug", "set_debug")
 
 def admin(bot, args):
-    
     diff = lambda l1,l2: filter(lambda x: x not in l2, l1)
     
     if len(args) > 1:
         admins = [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
         if args[1] == "list":
-            return "Admin%s: %s" % ('' if len(admins) == 1 else 's', ', '.join(admins))
+            answer(bot, "Admin%s: %s" % ('' if len(admins) == 1 else 's', ', '.join(admins)))
+            return None
         if args[1] == "add":
             if len(args) > 2:
                 bot._debug("Adding %d admins: %s." % (len(args[2:]), ', '.join(args[2:])))
@@ -313,59 +346,44 @@ def admin(bot, args):
         if args[1] == "remove":
             if len(args) > 2:
                 if bot.admin in args[2:]:
-                    return "Can't remove root, noob."
+                    answer(bot, "Can't remove root, noob.")
                 
                 bot._debug("Removing %d admins: %s." % (len(args[2:]), ', '.join(args[2:])))
                 admins = diff(admins, args[2:])
                 bot.config.set(bot.network, 'admin', ', '.join(admins))
                 return None
     
-    return give_help(bot, args[0], "list|add|remove [nick]")
+    give_help(bot, args[0], "list|add|remove [nick]")
+
+register(admin, "admin", "admin", "set_admin")
 
 
+######################################################################
+'''
 
-
-alibrary = {
-                #'reload':       lambda: bot._reload(args),
-                'voice':        lambda: voice(args),
-                'nick':         lambda: cnick(args),
-                'release':      lambda: release(args),
-                'identify':     lambda: ident(),
-                'join':         lambda: join(args),
-                'part':         lambda: part(args),
-                'kick':         lambda: kick(args),
-                'mode':         lambda: mode(args),
-                'perms':        lambda: perms(args),
-                'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
-                'raw':          lambda: raw(args),
-                'prefix':       lambda: set_prefix(bot, args),
-                'reset':        lambda: reset(bot, args),
-                'debug':        lambda: set_debug(bot, args),
-                'admin':        lambda: admin(bot, args)
-            }
             clibrary = {
-                'topic':        lambda: topic(bot, args),
+                #'topic':        lambda: topic(bot, args),
                 #'help':         lambda: show_help(bot, alibrary, clibrary),
-                'time':         lambda: time(bot, args),
-                'say':          lambda: say(bot, args),
-                'calc':         lambda: wolframalpha.wa(bot, args),
-                'go':           lambda: googleapi.search(bot, args),
-                'lookup':       lambda: dnstools.lookup(bot, args),
-                'wiki':         lambda: dnstools.wiki(bot, args),
-                'tell':         lambda: tell.answer(bot, args),
-                'twss':         lambda: fun.twss(bot, args),
-                'cookie':       lambda: fun.cookie(bot, args),
-                'spin':         lambda: fun.spin(bot, args),
-                'man':          lambda: man.man(bot, args),
-                'choose':       lambda: fun.choose(bot, args),
-                '8ball':        lambda: fun.m8b(bot, args),
-                'ghetto':       lambda: fun.ghetto(bot, args),
-                'sortinghat':   lambda: fun.sorting_hat(bot, args),
-                'lotto':        lambda: lotto.get_results(bot, args),
-                'quotes':       lambda: quotes.get_quote(bot, args),
-                'imdb':         lambda: imdb.info(bot, args),
-                'usage':        lambda: usage.usage(bot, args),
-                'maxx':         lambda: maxx.times(bot, args),
+                #'time':         lambda: time(bot, args),
+                #'say':          lambda: say(bot, args),
+                #'calc':         lambda: wolframalpha.wa(bot, args),
+                #'go':           lambda: googleapi.search(bot, args),
+                #'lookup':       lambda: dnstools.lookup(bot, args),
+                #'wiki':         lambda: dnstools.wiki(bot, args),
+                #'tell':         lambda: tell.answer(bot, args),
+                #'twss':         lambda: fun.twss(bot, args),
+                #'cookie':       lambda: fun.cookie(bot, args),
+                #'spin':         lambda: fun.spin(bot, args),
+                #'man':          lambda: man.man(bot, args),
+                #'choose':       lambda: fun.choose(bot, args),
+                #'8ball':        lambda: fun.m8b(bot, args),
+                #'ghetto':       lambda: fun.ghetto(bot, args),
+                #'sortinghat':   lambda: fun.sorting_hat(bot, args),
+                #'lotto':        lambda: lotto.get_results(bot, args),
+                #'quotes':       lambda: quotes.get_quote(bot, args),
+                #'imdb':         lambda: imdb.info(bot, args),
+                #'usage':        lambda: usage.usage(bot, args),
+                #'maxx':         lambda: maxx.times(bot, args),
                 'js':           lambda: js.execute(bot, args),
                 'cs':           lambda: js.execute(bot, args),
                 'ts':           lambda: js.execute(bot, args),

@@ -27,16 +27,16 @@ def get_quote(bot, args):
                     quotes = Quote.select().where(Quote.channel == channel, Quote.nick ** ("%%%s%%" % args[1]))
                     
                     if quotes.count() > 0:
-                        return output_quote(bot, quotes)
+                        answer(bot, output_quote(bot, quotes))
                     else:
-                        return "No quotes from %s found." % args[1]
+                        answer(bot, "No quotes from %s found." % args[1])
                 else:
                     quotes = Quote.select().where(Quote.channel == channel, Quote.nick != re.escape(bot.nick))
                     
                     if quotes.count() > 0:
-                        return output_quote(bot, quotes)
+                        answer(bot, output_quote(bot, quotes))
                     else:
-                        return "No quotes in database yet."
+                        answer(bot, "No quotes in database yet.")
                         
             elif len(args) >= 3:
                 search = ' '.join(args[2:])
@@ -58,13 +58,15 @@ def get_quote(bot, args):
                         quotes = Quote.select().where(Quote.channel == channel, Quote.nick != re.escape(bot.nick), Quote.message ** ("%%%s%%" % search[1:-1]))
                 
                 if type == "regexp":
-                    return output_quote(bot, quotes, regexp)
+                    answer(bot, output_quote(bot, quotes, regexp))
                 else:
-                    return output_quote(bot, quotes)
+                    answer(bot, output_quote(bot, quotes))
         else:
-            return "Nah. My own quotes are too contaminated."
+            answer(bot, "Nah. My own quotes are too contaminated.")
     else:
-        return give_help(bot, args[0], "<nick|*> [<keywords|/regexp/>]")
+        give_help(bot, args[0], "<nick|*> [<keywords|/regexp/>]")
+
+register(get_quote, "common", "quotes")
 
 def output_quote(bot, quotes, regexp =  False):
     import scanner

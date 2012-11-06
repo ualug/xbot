@@ -23,17 +23,19 @@ def wa(bot, args):
         failure = result.xpath("/queryresult[@success='false']")
         if success:
             success = unicode(success.replace("\:", "\u"))
-            return success.encode('utf-8').replace("Wolfram|Alpha", bot.name).replace("Stephen Wolfram", "Milos Ivanovic").strip()
+            answer(bot, success.encode('utf-8').replace("Wolfram|Alpha", bot.name).replace("Stephen Wolfram", "Milos Ivanovic").strip())
         elif failure:
             alternatives = result.xpath("/queryresult/relatedexamples/relatedexample[@input]")
             if alternatives:
-                return "Query not understood; suggestion%s: %s" % ('s' if len(alternatives) > 1 else '', ' | '.join([alt.values()[0].strip() for alt in alternatives]))
+                answer(bot, "Query not understood; suggestion%s: %s" % ('s' if len(alternatives) > 1 else '', ' | '.join([alt.values()[0].strip() for alt in alternatives])))
             else:
-                return __import__('random').choice(['Are you a wizard?', 'You must be a wizard.', "Plong.", "I like bytes.", "Mmmm... chocolate...", "Oooh look, a boat.", 'Boob.'])
+                answer(bot, __import__('random').choice(['Are you a wizard?', 'You must be a wizard.', "Plong.", "I like bytes.", "Mmmm... chocolate...", "Oooh look, a boat.", 'Boob.']))
         else:
-            return "No acceptable mathematical result."
+            answer(bot, "No acceptable mathematical result.")
     else:
-        return give_help(bot, args[0], "<mathematical query>")
+        give_help(bot, args[0], "<mathematical query>")
+
+register(wa, "common", "calc")
 
 def xml(result, title):
     if '*' in title:

@@ -44,8 +44,10 @@ def usage(bot, args):
                 result += "ADSL: %s used" % orcon[0].encode('utf-8')
         
         if len(result) > 0:
-            return result
+            answer(bot, result)
         else:
-            return "%s%s: Not configured." % (bot.prefix, args[0])
+            answer(bot, "%s%s: Not configured." % (bot.prefix, args[0]))
     else:
-        return give_help(bot, args[0], "")
+        give_help(bot, args[0], "")
+
+register(usage, "common", "usage")
