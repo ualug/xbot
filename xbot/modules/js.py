@@ -69,7 +69,7 @@ def execute(bot, rawcmd, filters = []):
             result = re.sub("\\s[(]\\s+@.+$", '', result)
         
         if 'pretty' in filters:
-            result = jsbeautifier.beautify(re.sub("^pretty:", '', result))
+            result = jsbeautifier.beautify(result)
         
         return result
     else:
@@ -94,7 +94,7 @@ pub.subscribe(js_eval, 'js.eval')
 def js_run(bot, args):
     if len(args) > 1:
         if re.match(".+:$", args[1]):
-            filters = re.sub(".+:$", '', args[1]).split(',')
+            filters = re.sub(":$", '', args[1]).split(',')
             command = ' '.join(args[2:])
         else:
             filters = []
@@ -109,7 +109,7 @@ def js_run(bot, args):
             answer(bot, "Took too long, nigga.")
             return None
         
-        if result != None:
+        if result != None and len(result) > 0:
             if len(result.split('\n')) > 4 or len(result) > 200:
                 bot._debug('Going to upload to sprunge...')
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
