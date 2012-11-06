@@ -132,7 +132,10 @@ def js_run(bot, args):
                 util.answer(bot, "!%s: error pasting output." % args[0])
             else:
                 bot._debug('Returning locally...')
-                util.answer(bot, result)
+                if re.match("^\\/me", result):
+                    pub.sendMessage('reply', nick=bot.remote['sendee'], message="\x01ACTION %s\x01" % re.sub("^\\/me", '', result))
+                else:
+                    util.answer(bot, result)
     else:
         util.give_help(bot, args[0], "[FILTERS:] <expr>")
         util.answer(bot, "\tAvailable filters: pretty, coffee, http, gist.")
