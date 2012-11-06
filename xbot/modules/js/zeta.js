@@ -18,5 +18,6 @@ var libs = {
   'lolcrypt': 'https://gist.github.com/3999502',
   'es5-shim': 'https://github.com/kriskowal/es5-shim',
   'coffeescript': 'http://coffeescript.org',
-  'js_beautify': 'https://github.com/einars/js-beautify'
+  'js_beautify': 'https://github.com/einars/js-beautify',
+  'typescript': ''
 };

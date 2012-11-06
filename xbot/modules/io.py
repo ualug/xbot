@@ -1,14 +1,17 @@
 from util import *
 import datetime
 import scanner
+import re
 
 # user modules
-import wolframalpha, googleapi, dnstools, tell
+import wolframalpha, googleapi, dnstools, tell, hub, cleverbot
 import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
+
 
 def read(bot):
     global Bot
     Bot = bot
+    
     if bot.remote['nick'] and bot.remote['nick'] != bot.nick:
         if bot.remote['message'].startswith(bot.prefix):
             args = bot.remote['message'][1:].rstrip().split(" ")
@@ -27,7 +30,8 @@ def read(bot):
                 'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
                 'raw':          lambda: raw(args),
                 'prefix':       lambda: set_prefix(bot, args),
-                'jsreset':      lambda: js.js_reset(bot)
+                'reset':        lambda: reset(bot, args),
+                'debug':        lambda: set_debug(bot, args)
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
@@ -53,7 +57,9 @@ def read(bot):
                 'usage':        lambda: usage.usage(bot, args),
                 'maxx':         lambda: maxx.times(bot, args),
                 'js':           lambda: js.execute(bot, args),
-                'cs':           lambda: js.execute(bot, args)
+                'cs':           lambda: js.execute(bot, args),
+                'ts':           lambda: js.execute(bot, args),
+                'jslib':        lambda: hub.jslib(bot, args)
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
@@ -77,6 +83,8 @@ def read(bot):
             args = bot.remote['message'][1:-1].split()[1:]
             if type != "ACTION":
                 ctcp(type, args)
+        elif bot.remote['mid'] == "INVITE" and bot.remote['nick'].lower() not in bot.inv['banned']:
+            join([bot.remote['mid'], bot.remote['message']])
         else:
             if bot.init['registered'] and not bot.init['identified']:
                 if bot.remote['nick'] == "NickServ":
@@ -255,3 +263,35 @@ def set_prefix(bot, args):
         bot.prefix = args[1]
     else:
         return give_help(bot, args[0], "<char>")
+
+def set_debug(bot, args):
+    result = []
+    if len(args) > 2:
+        if re.search("(on|yes|true|1)", args[2]):
+            bot.verbose = True
+            result.append("Verbose logging: on")
+        else:
+            bot.verbose = False
+            result.append("Verbose logging: off")
+    if len(args) > 1:
+        if re.search("(on|yes|true|1)", args[1]):
+            bot.debug = True
+            result.append("Debug: on")
+        else:
+            bot.debug = False
+            result.append("Debug: off")
+        
+        return "\n".join(result)
+    else:
+        return give_help(bot, args[0], "on|off [verbose?(on|off)]")
+
+def reset(bot, args):
+    if len(args) > 1:
+        if args[1] == "js":
+            return js.js_reset(bot)
+        if args[1] == "cleverbot":
+            if bot.remote['receiver'] in bot.inv['cleverbot']:
+                del bot.inv['cleverbot'][bot.remote['receiver']]
+            return "Success: %s's cleverbot reset." % bot.remote['receiver'] 
+    
+    return give_help(bot, args[0], "js|cleverbot")
