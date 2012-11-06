@@ -16,10 +16,10 @@ def gh_inst(bot):
         ga = bot.config.get('module: github', 'github_auth')
         if len(ga.split(":")) == 2:
             ga = ga.split(":")
-            bot._debug("Password auth: %s,%s" % (ga[0], ga[1]))
+            bot._debug("Password auth.")
             return Github(ga[0], ga[1])
         else:
-            bot._debug("Token auth: %s" %ga)
+            bot._debug("Token auth.")
             return Github(ga)
     except:
         return "Github: Authentication error."
@@ -30,7 +30,7 @@ def propose(bot, result, options = []):
         util.answer(bot, "Took too long, nigga.")
     else:
         date = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
-        result = "// Proposed by %s @ %s\n\n%s" % (options[0], date, result)
+        result = "// Proposed by %s @ %s\n\nself.%s = %s" % (options[0], date, options[1], result)
         
         gh = gh_inst(bot)
         if isinstance(gh, basestring):

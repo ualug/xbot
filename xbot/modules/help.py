@@ -1,4 +1,5 @@
 import util
+from pubsub import pub
 
 library = {
     'admin': [],

@@ -6,9 +6,53 @@ from interruptingcow import timeout
 import jsbeautifier
 import subprocess
 import urllib2
+import base64
+import botdb
 import json
 import re
 import os
+
+
+def save_store(bot):
+    db = botdb.BotDB(bot).connect()
+    bot._debug('Saving persistent store...')
+    
+    try:
+        bot.inv['js'].enter()
+        store = bot.inv['js'].eval("JSON.stringify(self.store || {})")
+        store = json.loads(store)
+        for pair in store:
+            try:
+                k = botdb.JsStore.get(botdb.JsStore.key == pair)
+            except botdb.peewee.DoesNotExist:
+                k = botdb.JsStore()
+                k.key = pair
+            k.value = json.dumps(store[pair])
+            k.save()
+        bot.inv['js'].leave()
+    except PyV8.JSError as e:
+        bot._debug('JS error.')
+
+def load_store(bot):
+    db = botdb.BotDB(bot).connect()
+    bot._debug('Loading persistent store...')
+    
+    if 'js' not in bot.inv:
+        bot.inv['js'] = PyV8.JSContext()
+    
+    try:
+        bot.inv['js'].enter()
+        store = {}
+        for pair in botdb.JsStore.select():
+            store[pair.key] = json.loads(pair.value)
+        store = json.dumps(store)
+        bot.inv['js'].eval("this.store = %s" % store)
+        bot.inv['js'].leave()
+    except PyV8.JSError as e:
+        bot._debug('JS error.')
+
+pub.subscribe(save_store, 'js.store.save')
+pub.subscribe(load_store, 'js.store.load')
 
 
 def execute(bot, rawcmd, filters = []):
@@ -22,6 +66,8 @@ def execute(bot, rawcmd, filters = []):
             f = open(os.path.join(os.path.dirname(__file__), "js", j), 'r')
             bot.inv['js'].eval(f.read())
         bot.inv['js'].leave()
+        pub.sendMessage('js.store.load', bot=bot)
+        
     
     botenv = json.dumps({
         'version':  bot.version,
@@ -34,6 +80,9 @@ def execute(bot, rawcmd, filters = []):
     command = "((function(){try {\n"
     if 'coffee' in filters:
         command += "return CoffeeScript.eval('%s')" % rawcmd
+    elif len(rawcmd.split('\n')) > 1:
+        command += rawcmd
+        command += "\n\nreturn 'Done.';"
     else:
         command += "return %s" % rawcmd
     command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString()"
@@ -54,10 +103,12 @@ def execute(bot, rawcmd, filters = []):
         result = str(e)
     bot._debug('Ran fine.')
     
+    pub.sendMessage('js.store.save', bot=bot)
+    
     bot._debug('Leaving JS context...')
     bot.inv['js'].leave()
     
-    if result is not None:
+    if result is not None and len(result) > 0:
         bot._debug('Command has result.')
         bot._debug('Converting to str...')
         result = str(result)

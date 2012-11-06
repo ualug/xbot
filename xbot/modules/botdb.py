@@ -24,10 +24,11 @@ class BotDB(object):
     def connect(self):
         self.db.connect()
         
-        try:
-            Quote.create_table()
-        except Exception:
-            pass
+        try: Quote.create_table()
+        except Exception: pass
+        
+        try: JsStore.create_table()
+        except Exception: pass
     
 
 class Quote(peewee.Model):
@@ -40,3 +41,11 @@ class Quote(peewee.Model):
     
     class Meta:
         db_table = "quotes"
+
+class JsStore(peewee.Model):
+    id = peewee.PrimaryKeyField()
+    key = peewee.TextField()
+    value = peewee.TextField()
+    
+    class Meta:
+        db_table = "js_store"
