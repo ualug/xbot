@@ -1,4 +1,4 @@
-from util import *
+import util
 from pubsub import pub
 
 import re
@@ -52,7 +52,7 @@ def clever_scan(bot):
         if bot.remote['receiver'] not in bot.inv['cleverbot']:
             bot.inv['cleverbot'][bot.remote['receiver']] = CleverBot()
         query = bot.remote['message'][len(bot.nick)+2:].decode('ascii', 'ignore')
-        answer(bot, "%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(bot, query))))
+        util.answer(bot, "%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(bot, query))))
         #bot._sendq(("NOTICE", bot.remote['nick']), "This feature has been disabled.")
 
 pub.subscribe(clever_scan, 'scanner')
@@ -61,6 +61,6 @@ pub.subscribe(clever_scan, 'scanner')
 def clever_reset(bot, args):
     if 'cleverbot' in bot.inv and bot.remote['receiver'] in bot.inv['cleverbot']:
         del bot.inv['cleverbot'][bot.remote['receiver']]
-    answer(bot, "Success: %s's cleverbot reset." % bot.remote['receiver'])
+    util.answer(bot, "Success: %s's cleverbot reset." % bot.remote['receiver'])
 
-register(clever_reset, "reset", "cleverbot")
+util.register(clever_reset, "reset", "cleverbot")

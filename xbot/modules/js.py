@@ -1,4 +1,4 @@
-from util import *
+import util
 from pubsub import pub
 
 from pyv8 import PyV8
@@ -106,7 +106,7 @@ def js_run(bot, args):
         result = execute(bot, command, filters)
         
         if result == False:
-            answer(bot, "Took too long, nigga.")
+            util.answer(bot, "Took too long, nigga.")
             return None
         
         if result != None and len(result) > 0:
@@ -117,26 +117,26 @@ def js_run(bot, args):
                     p = subprocess.Popen(service, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     paste = p.communicate(input=">>> %s\n\n%s" % (command, result))[0]
                     try:
-                        answer(bot, "%s?js" % re.findall('(http://.*)', paste, re.S)[0].strip())
+                        util.answer(bot, "%s?js" % re.findall('(http://.*)', paste, re.S)[0].strip())
                         return None
                     except IndexError:
                         pass
-                answer(bot, "!%s: error pasting output." % args[0])
+                util.answer(bot, "!%s: error pasting output." % args[0])
             else:
                 bot._debug('Returning locally...')
-                answer(bot, result)
+                util.answer(bot, result)
     else:
         if args[0] == "js":
-            give_help(bot, args[0], "<js_expr>")
+            util.give_help(bot, args[0], "<js_expr>")
         elif args[0] == "cs":
-            give_help(bot, args[0], "<coffee_expr>")
+            util.give_help(bot, args[0], "<coffee_expr>")
 
-register(js_run, "common", "js")
-register(js_run, "common", "cs")
+util.register(js_run, "common", "js")
+util.register(js_run, "common", "cs")
 
 def js_reset(bot, args):
     bot._debug('Destroying JS context...')
     del bot.inv['js']
-    answer(bot, "Success: Javascript context reset.")
+    util.answer(bot, "Success: Javascript context reset.")
 
-register(js_reset, "reset", "js")
+util.register(js_reset, "reset", "js")

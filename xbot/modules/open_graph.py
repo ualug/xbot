@@ -1,4 +1,4 @@
-from util import *
+import util
 from pubsub import pub
 
 import re
@@ -60,7 +60,7 @@ def og_scan(bot):
     for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
         bot._debug("Found a URL: %s" % url[0])
         try:
-            answer(bot, open_graph(bot, url[0]).encode('utf8'))
+            util.answer(bot, open_graph(bot, url[0]).encode('utf8'))
         except AttributeError:
             pass
 

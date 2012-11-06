@@ -1,4 +1,4 @@
-from util import *
+import util
 import sys
 import urllib
 import urllib2
@@ -44,10 +44,10 @@ def usage(bot, args):
                 result += "ADSL: %s used" % orcon[0].encode('utf-8')
         
         if len(result) > 0:
-            answer(bot, result)
+            util.answer(bot, result)
         else:
-            answer(bot, "%s%s: Not configured." % (bot.prefix, args[0]))
+            util.answer(bot, "%s%s: Not configured." % (bot.prefix, args[0]))
     else:
-        give_help(bot, args[0], "")
+        util.give_help(bot, args[0], "")
 
-register(usage, "common", "usage")
+util.register(usage, "common", "usage")

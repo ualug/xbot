@@ -1,4 +1,4 @@
-from util import *
+import util
 import urllib2
 import json
 import datetime
@@ -19,12 +19,12 @@ def times(bot, args):
             else:
                 raise ValueError
         except ValueError:
-            answer(bot, error)
+            util.answer(bot, error)
             return None
         
         stops = json.loads(urllib2.urlopen('http://www.maxx.co.nz/base/StopInfo/FindStopsByNumber/%d.aspx' % stop).read())
         if not stops['recordcount']:
-            answer(bot, error)
+            util.answer(bot, error)
             return None
             
         raw_services = json.loads(urllib2.urlopen('http://www.maxx.co.nz/base/DepartureBoard2/RealTime/%d.aspx' % stop).read())
@@ -56,9 +56,9 @@ def times(bot, args):
                 
                 results.append(("%s: %s %s %s" % (service['route'], service['toLocation'], ('in %d %s' % (departure, plural('minute', departure))) if departure != 0 else 'is DUE', offset)).encode('utf-8'))
         
-        answer(bot, '\n'.join(results) or "No buses imminent.")
+        util.answer(bot, '\n'.join(results) or "No buses imminent.")
     
     else:
-        give_help(bot, args[0], "<bus stop number>")
+        util.give_help(bot, args[0], "<bus stop number>")
 
-register(times, "common", "maxx")
+util.register(times, "common", "maxx")

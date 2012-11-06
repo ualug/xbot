@@ -1,4 +1,4 @@
-from util import *
+import util
 import urllib2
 import lxml.etree
 
@@ -23,19 +23,19 @@ def wa(bot, args):
         failure = result.xpath("/queryresult[@success='false']")
         if success:
             success = unicode(success.replace("\:", "\u"))
-            answer(bot, success.encode('utf-8').replace("Wolfram|Alpha", bot.name).replace("Stephen Wolfram", "Milos Ivanovic").strip())
+            util.answer(bot, success.encode('utf-8').replace("Wolfram|Alpha", bot.name).replace("Stephen Wolfram", "Milos Ivanovic").strip())
         elif failure:
             alternatives = result.xpath("/queryresult/relatedexamples/relatedexample[@input]")
             if alternatives:
-                answer(bot, "Query not understood; suggestion%s: %s" % ('s' if len(alternatives) > 1 else '', ' | '.join([alt.values()[0].strip() for alt in alternatives])))
+                util.answer(bot, "Query not understood; suggestion%s: %s" % ('s' if len(alternatives) > 1 else '', ' | '.join([alt.values()[0].strip() for alt in alternatives])))
             else:
-                answer(bot, __import__('random').choice(['Are you a wizard?', 'You must be a wizard.', "Plong.", "I like bytes.", "Mmmm... chocolate...", "Oooh look, a boat.", 'Boob.']))
+                util.answer(bot, __import__('random').choice(['Are you a wizard?', 'You must be a wizard.', "Plong.", "I like bytes.", "Mmmm... chocolate...", "Oooh look, a boat.", 'Boob.']))
         else:
-            answer(bot, "No acceptable mathematical result.")
+            util.answer(bot, "No acceptable mathematical result.")
     else:
-        give_help(bot, args[0], "<mathematical query>")
+        util.give_help(bot, args[0], "<mathematical query>")
 
-register(wa, "common", "calc")
+util.register(wa, "common", "calc")
 
 def xml(result, title):
     if '*' in title:

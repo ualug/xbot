@@ -1,4 +1,4 @@
-from util import *
+import util
 from pubsub import pub
 
 import re
@@ -17,7 +17,7 @@ def oooo_scan(bot):
     if len(bot.remote['message']) > 2 and random.random() > 0.9:
         if count_upper(bot.remote['message']) > 80:
             time.sleep(4)
-            answer(bot, random.choice([':' + 'O' * random.randint(1, 10), 'O' * random.randint(1, 10) + ':']))
+            util.answer(bot, random.choice([':' + 'O' * random.randint(1, 10), 'O' * random.randint(1, 10) + ':']))
 
 pub.subscribe(oooo_scan, 'scanner')
 
@@ -36,7 +36,7 @@ def butt_scan(bot):
                                 if random.random() > 0.3:
                                     words[m] = words[m][:-4] + "butt"
             
-                answer(bot, append(' '.join(words)))
+                util.answer(bot, append(' '.join(words)))
 
 pub.subscribe(butt_scan, 'scanner')
 

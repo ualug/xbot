@@ -1,4 +1,4 @@
-from util import *
+import util
 
 import urllib2
 import lxml.etree
@@ -15,6 +15,6 @@ def get_results(bot, args):
     strike = results[7:11]
     powerball = results[11]
     
-    answer(bot, "Weekly draw #%d as follows\nLotto: %s, bonus %d, powerball %d. Strike order: %s." % (int(draw), ', '.join(lotto), int(bonus_ball), int(powerball), ', '.join(strike)))
+    util.answer(bot, "Weekly draw #%d as follows\nLotto: %s, bonus %d, powerball %d. Strike order: %s." % (int(draw), ', '.join(lotto), int(bonus_ball), int(powerball), ', '.join(strike)))
 
-register(get_results, "common", "lotto")
+util.register(get_results, "common", "lotto")

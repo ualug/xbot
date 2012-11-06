@@ -1,4 +1,4 @@
-from util import *
+import util
 import dns.resolver
 import dns.reversename
 import re
@@ -38,22 +38,22 @@ def lookup(bot, args):
             elif args[1] == "-r":
                 addresses = lookitup(host, "PTR")
             else:
-                give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
+                util.give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
                 return None
             
         if addresses != -1:
             if addresses:
                 plural = "others" if len(addresses) > 2 else "other"
                 others = " (%s %s)" % (len(addresses), plural) if len(addresses) > 1 else ''
-                answer(bot, "Address: %s%s" % (addresses[0] if not str(addresses[0]).endswith(".") else str(addresses[0])[:-1], others))
+                util.answer(bot, "Address: %s%s" % (addresses[0] if not str(addresses[0]).endswith(".") else str(addresses[0])[:-1], others))
             else:
-                answer(bot, "%s: NXDOMAIN" % host)
+                util.answer(bot, "%s: NXDOMAIN" % host)
         else:
             answer("Invalid host for this type of lookup.")
     else:
-        give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
+        util.give_help(bot, args[0], "[-6 (IPv6), -r (rDNS)] <server>")
 
-register(lookup, "common", "lookup", "dns_lookup")
+util.register(lookup, "common", "lookup", "dns_lookup")
 
 
 def wiki(bot, args):
@@ -63,8 +63,8 @@ def wiki(bot, args):
             bot._sendq(("NOTICE", bot.remote['nick']), ''.join(str(result[0]).split('"')))
             return None
         else:
-            answer(bot, "No such article found.")
+            util.answer(bot, "No such article found.")
     else:    
-        give_help(bot, args[0], "<article>")
+        util.give_help(bot, args[0], "<article>")
 
-register(wiki, "common", "wiki", "wiki_lookup")
+util.register(wiki, "common", "wiki", "wiki_lookup")

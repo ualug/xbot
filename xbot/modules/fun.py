@@ -1,16 +1,16 @@
-from util import *
+import util
 
 def twss(bot, args):
     if len(args) > 1:
         quote = ' '.join(args[1:])
         if quote.startswith('"') and quote.endswith('"'):
-            answer(bot, "%s <- that's what she said." % quote)
+            util.answer(bot, "%s <- that's what she said." % quote)
         else:
-            give_help(bot, args[0], "<quote>")
+            util.give_help(bot, args[0], "<quote>")
     else:
-        answer(bot, "That's what she said.")
+        util.answer(bot, "That's what she said.")
 
-register(twss, "common", "twss")
+util.register(twss, "common", "twss")
 
 def spin(bot, args):
     nicks = bot.inv['rooms'].get(bot.remote['receiver'])
@@ -24,15 +24,15 @@ def spin(bot, args):
                 _nicks.remove(bot.remote['nick'])
                 _nicks.remove(bot.nick)
                 winner = __import__('random').choice(_nicks)
-                answer(bot, "The winner of %s is %s. Congratulations %s!" % (message, winner, winner))
+                util.answer(bot, "The winner of %s is %s. Congratulations %s!" % (message, winner, winner))
             else:
-                answer(bot, "You want to spin me? Ok. Wheeeeeeee~")
+                util.answer(bot, "You want to spin me? Ok. Wheeeeeeee~")
         else:
-            answer(bot, "Not enough winrars!")
+            util.answer(bot, "Not enough winrars!")
     else:
-        answer(bot, "Triggering this command privately is not allowed.")
+        util.answer(bot, "Triggering this command privately is not allowed.")
 
-register(spin, "common", "spin")
+util.register(spin, "common", "spin")
 
 def cookie(bot, args):
     if len(args) == 2:
@@ -40,17 +40,17 @@ def cookie(bot, args):
         if nicks:
             if args[1].lower() in [nick.lower() for nick in nicks]:
                 if args[1].lower() != bot.name.lower():
-                    answer(bot, "\x01ACTION gives %s a cookie.\x01" % args[1])
+                    util.answer(bot, "\x01ACTION gives %s a cookie.\x01" % args[1])
                 else:
-                    answer(bot, "OM NOM NOM NOM.")
+                    util.answer(bot, "OM NOM NOM NOM.")
             else:
-                answer(bot, "Who?")
+                util.answer(bot, "Who?")
         else:
-            answer(bot, "Triggering this command privately is not allowed.")
+            util.answer(bot, "Triggering this command privately is not allowed.")
     else:
-        give_help(bot, args[0], "<nick>")
+        util.give_help(bot, args[0], "<nick>")
 
-register(cookie, "common", "cookie")
+util.register(cookie, "common", "cookie")
 
 def choose(bot, args):
     import random
@@ -73,11 +73,11 @@ def choose(bot, args):
             ans = ans[:-2]
         if choice.endswith("?") and len(choice) > 1:
             choice = choice[:-1]
-        answer(bot, "%s %s%s." % (ans, intermediary, choice))
+        util.answer(bot, "%s %s%s." % (ans, intermediary, choice))
     else:
-        give_help(bot, args[0], "<item 1> or <item 2> [or <item n>] where 1 != 2 != n")
+        util.give_help(bot, args[0], "<item 1> or <item 2> [or <item n>] where 1 != 2 != n")
 
-register(choose, "common", "choose")
+util.register(choose, "common", "choose")
 
 def m8b(bot, args):
     if len(args) > 1:
@@ -86,11 +86,11 @@ def m8b(bot, args):
             "Reply hazy, try again.", "Ask again later.", "Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.",
             "Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.", "Very doubtful."
         ]
-        answer(bot, __import__('random').choice(responses))
+        util.answer(bot, __import__('random').choice(responses))
     else:
-        give_help(bot, args[0], "<herp>")
+        util.give_help(bot, args[0], "<herp>")
 
-register(m8b, "common", "8ball", "eight_ball")
+util.register(m8b, "common", "8ball", "eight_ball")
 
 def ghetto(bot, args):
     if len(args) == 2:
@@ -111,11 +111,11 @@ def ghetto(bot, args):
             try: ghetto_name += table[letter] + "-"
             except KeyError: return "Invalid name."
         
-        answer(bot, ghetto_name[:-1])
+        util.answer(bot, ghetto_name[:-1])
     else:
-        give_help(bot, args[0], "<first name>")
+        util.give_help(bot, args[0], "<first name>")
 
-register(ghetto, "common", "ghetto")
+util.register(ghetto, "common", "ghetto")
 
 def sorting_hat(bot, args):
     if len(args) == 2:
@@ -123,19 +123,19 @@ def sorting_hat(bot, args):
         if nicks:
             if args[1].lower() in [nick.lower() for nick in nicks]:
                 houses = ['Gryffindor', 'Hufflepuff', 'Ravenclaw', 'Slytherine']
-                answer(bot, houses[sum(ord(c) for c in args[1]) % 4] + '!')
+                util.answer(bot, houses[sum(ord(c) for c in args[1]) % 4] + '!')
             else:
-                answer(bot, "But they're not here!")
+                util.answer(bot, "But they're not here!")
         else:
-            answer(bot, "It's a secret.")
+            util.answer(bot, "It's a secret.")
     else:    
-        give_help(bot, args[0], "<nick>")
+        util.give_help(bot, args[0], "<nick>")
 
-register(sorting_hat, "common", "sortinghat")
+util.register(sorting_hat, "common", "sortinghat")
 
 def lotto(bot, args):
     import random
     balls = random.sample(range(1, 41), 7)
-    answer(bot, "Winning lotto numbers are: %s & bonus ball %d with powerball %d" % (', '.join(str(s) for s in balls[:-1]), balls[6], random.randint(1, 10)))
+    util.answer(bot, "Winning lotto numbers are: %s & bonus ball %d with powerball %d" % (', '.join(str(s) for s in balls[:-1]), balls[6], random.randint(1, 10)))
 
-#register(lotto, "common", "lotto")
+#util.register(lotto, "common", "lotto")

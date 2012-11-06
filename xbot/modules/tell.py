@@ -1,4 +1,4 @@
-from util import *
+import util
 def tell(bot, args):
     if len(args) >= 4 and args[2] == "about":
         what = ' '.join(args[3:]).lower()
@@ -14,14 +14,14 @@ def tell(bot, args):
         if library.get(what):
             if bot.inv['rooms'].get(bot.remote['receiver']):
                 if args[1].lower() in [nick.lower() for nick in bot.inv['rooms'].get(bot.remote['receiver'])]:
-                    answer(bot, "%s: %s" % (args[1], library[what]))
+                    util.answer(bot, "%s: %s" % (args[1], library[what]))
                 else:
-                    answer(bot, "%s: %s isn't in this channel." % (bot.remote['nick'], args[1]))
+                    util.answer(bot, "%s: %s isn't in this channel." % (bot.remote['nick'], args[1]))
             else:
-                answer(bot, "Triggering this command privately is not allowed.")
+                util.answer(bot, "Triggering this command privately is not allowed.")
         else:
-            answer(bot, "Dunno about that, nigga.")
+            util.answer(bot, "Dunno about that, nigga.")
     else:
-        give_help(bot, args[0], "<nick> about <item>")
+        util.give_help(bot, args[0], "<nick> about <item>")
 
-register(tell, "common", "tell")
+util.register(tell, "common", "tell")

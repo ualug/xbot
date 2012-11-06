@@ -1,4 +1,4 @@
-from util import *
+import util
 import subprocess
 import re
 
@@ -24,4 +24,4 @@ def parse(bot, args):
 def _eval(bot, args):
     reply(bot.remote['sendee'], parse(bot, args))
 
-register(_eval, "admin", "eval", "eval")
+util.register(_eval, "admin", "eval", "eval")
