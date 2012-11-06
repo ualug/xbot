@@ -184,7 +184,9 @@ def js_run(bot, args):
             else:
                 bot._debug('Returning locally...')
                 if re.match("^\\/me", result):
-                    pub.sendMessage('reply', nick=bot.remote['sendee'], message="\x01ACTION %s\x01" % re.sub("^\\/me", '', result))
+                    firstLine = re.sub("^\\/me", '', result.split("\n")[0])
+                    subsequentLines = "" if len(result.split("\n")[1:]) < 1 else "\n" + "\n".join(result.split("\n")[1:])
+                    pub.sendMessage('reply', nick=bot.remote['sendee'], message="\x01ACTION %s\x01%s" % (firstLine, subsequentLines))
                 else:
                     util.answer(bot, result)
     else:
