@@ -1,3 +1,7 @@
+import util
+from pubsub import pub
+
+import re
 import urllib
 import urllib2
 import hashlib
@@ -39,3 +43,24 @@ class CleverBot(object):
         
         h = HTMLParser.HTMLParser()
         return h.unescape(self.params['ttsText']).encode('utf8')
+
+
+def clever_scan(bot):
+    # someone is talking to the bot
+    if re.search('^%s(?:\:|,)' % re.escape(bot.nick.lower()), bot.remote['message'].lower()):
+        if 'cleverbot' not in bot.inv: bot.inv['cleverbot'] = {}
+        if bot.remote['receiver'] not in bot.inv['cleverbot']:
+            bot.inv['cleverbot'][bot.remote['receiver']] = CleverBot()
+        query = bot.remote['message'][len(bot.nick)+2:].decode('ascii', 'ignore')
+        util.answer(bot, "%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(bot, query))))
+        #bot._sendq(("NOTICE", bot.remote['nick']), "This feature has been disabled.")
+
+pub.subscribe(clever_scan, 'scanner')
+
+
+def clever_reset(bot, args):
+    if 'cleverbot' in bot.inv and bot.remote['receiver'] in bot.inv['cleverbot']:
+        del bot.inv['cleverbot'][bot.remote['receiver']]
+    util.answer(bot, "Success: %s's cleverbot reset." % bot.remote['receiver'])
+
+util.register(clever_reset, "reset", "cleverbot")

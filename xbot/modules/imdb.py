@@ -1,4 +1,4 @@
-from util import *
+import util
 import urllib, urllib2
 import json
 
@@ -11,8 +11,10 @@ def info(bot, args):
                                                             data['Rated'] if data['Rated'] != 'N/A' else 'Unrated',
                                                             data['imdbRating'] if data['imdbRating'] != 'N/A' else '?',
                                                             data['Genre'], 'http://www.imdb.com/title/%s/' % data['imdbID'])
-            return response.encode('utf-8')
+            util.answer(bot, response.encode('utf-8'))
         else:
-            return '%s%s: No such movie found.' % (bot.prefix, args[0])
+            util.answer(bot, '%s%s: No such movie found.' % (bot.prefix, args[0]))
     else:
-        return give_help(bot, args[0], "<movie title>")
+        util.give_help(bot, args[0], "<movie title>")
+
+util.register(info, "common", "imdb")

@@ -18,6 +18,18 @@
    pip install peewee
    ```
 
+- [pubsub](http://pubsub.sourceforge.net/)
+   
+   ```
+   pip install pubsub
+   ```
+
+- [js-beautifier](http://jsbeautifier.org/)
+   
+   ```
+   pip install git+git://github.com/passcod/js-beautify-python.git
+   ```
+
 - [opengraph](https://github.com/erikriver/opengraph)
    
    ```

@@ -1,47 +1,27 @@
+import util
+from pubsub import pub
+
 import re
 import time
 import random
-import cleverbot
-import opengraph
-import lxml.html
-import urllib2
-
-class HeadRequest(urllib2.Request):
-    def get_method(self):
-        return "HEAD"
 
 def scan(bot, message = None):
-    results = []
-    
     if message:
         bot.remote['message'] = message
-        
-    message_lowercase = bot.remote['message'].lower()
     
-    # scan for urls, check to see if OpenGraph validity and return site name and page title.
-    # if OpenGraph not found, tries <title> tag.
-    for url in re.findall('(?P<url>(https?://|www.)[^\s]+)', bot.remote['message']):
-        bot._debug("Found a URL: %s" % url[0])
-        try:
-            results.append(open_graph(bot, url[0]).encode('utf8'))
-        except AttributeError:
-            pass
-    
-    # someone is talking to the bot
-    if re.search('^%s(?:\:|,)' % re.escape(bot.nick.lower()), message_lowercase):
-        if 'cleverbot' not in bot.inv: bot.inv['cleverbot'] = {}
-        if bot.remote['receiver'] not in bot.inv['cleverbot']:
-            bot.inv['cleverbot'][bot.remote['receiver']] = cleverbot.CleverBot()
-        query = bot.remote['message'][len(bot.nick)+2:].decode('ascii', 'ignore')
-        results.append("%s: %s" % (bot.remote['nick'], re.compile('cleverbot', re.IGNORECASE).sub(bot.nick, bot.inv['cleverbot'][bot.remote['receiver']].query(bot, query))))
-        #bot._sendq(("NOTICE", bot.remote['nick']), "This feature has been disabled.")
-    
+    pub.sendMessage('scanner', bot=bot)
+
+
+def oooo_scan(bot):
     # per 10% chance, count uppercase and act shocked
     if len(bot.remote['message']) > 2 and random.random() > 0.9:
         if count_upper(bot.remote['message']) > 80:
             time.sleep(4)
-            results.append(random.choice([':' + 'O' * random.randint(1, 10), 'O' * random.randint(1, 10) + ':']))
-    
+            util.answer(bot, random.choice([':' + 'O' * random.randint(1, 10), 'O' * random.randint(1, 10) + ':']))
+
+pub.subscribe(oooo_scan, 'scanner')
+
+def butt_scan(bot):
     # per 1% chance, butt into someone's conversation
     if random.random() > 0.99:
         if not bot.remote['message'].startswith("\x01"):
@@ -56,53 +36,10 @@ def scan(bot, message = None):
                                 if random.random() > 0.3:
                                     words[m] = words[m][:-4] + "butt"
             
-                results.append(' '.join(words))
-    
-    results = [result for result in results if result is not None]
-    try: return '\n'.join(results)
-    except TypeError: return None
+                util.answer(bot, append(' '.join(words)))
 
-def open_graph(bot, url):
-    
-    if url[1] == 'www.':
-        url = 'http://%s' % url[0]
-    
-    bot._debug('Sending HEAD request...')
-    response = urllib2.urlopen(HeadRequest(url))
-    conttype = response.info().getheader('Content-Type')
-    bot._debug("Content-type: %s" % conttype.encode('utf8'))
-    if not re.search("html", conttype):
-        bot._debug('Abort OpenGraph scan.')
-        return None
-    
-    bot._debug('Fetching OpenGraph data...')
-    try:
-        og = opengraph.OpenGraph(url=url)
-    except:
-        og = False
-    
-    if og and og.is_valid() and 'title' in og:
-        bot._debug('Found some metadata.')
-        
-        if 'site_name' in og:
-            return "%s: \x02%s\x02" % (og['site_name'], og['title'])
-        else:
-            return "\x02%s\x02" % og['title']
-    else:
-        bot._debug('Fall back to plain HTML.')
-        title = ""
-        try:
-            bot._debug('Fetching document title...')
-            title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read()).xpath("//title/text()")[0]
-            title = re.sub("[^a-zA-Z0-9\\.\-\|\s\\\\\\/!@#\$%|^&*(){}\[\]_+=<>,\?'\":;\~\`]", '', title).encode('utf8')
-        except:
-            return None
-        if title == "Google":
-            bot._debug('This looks like google.')
-            return "That's Google, why not search with !go <keywords>?"
-        else:
-            return "\x02%s\x02" % title
-    return None
+pub.subscribe(butt_scan, 'scanner')
+
 
 def count_upper(str):
     n = s = 0

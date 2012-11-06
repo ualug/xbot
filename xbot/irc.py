@@ -172,7 +172,7 @@ class Parser(Client):
         self.previous = {}
         self.voice = True
         self.name = config.get(self.network, 'nick')
-        self.admin = config.get(self.network, 'admin')
+        self.admin = config.get(self.network, 'admin').split(',')[0]
 
     def interpret(self, line):
         self.remote['server'] = None
@@ -213,7 +213,7 @@ class Parser(Client):
                     try:
                         if self.init['log'] and self.init['joined'] and self.remote['mid'] == "PRIVMSG":
                             modules.logger.log(self, self.remote['sendee'], self.remote['nick'], self.remote['message'])
-                        modules.io.read(self)
+                        modules._io.read(self)
                     except:
                         error_message = "Traceback (most recent call last):\n" + '\n'.join(traceback.format_exc().split("\n")[-4:-1])
                         self._sendq(("NOTICE", self.remote['sendee'] or self.admin), error_message)
