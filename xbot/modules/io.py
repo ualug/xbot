@@ -31,7 +31,8 @@ def read(bot):
                 'raw':          lambda: raw(args),
                 'prefix':       lambda: set_prefix(bot, args),
                 'reset':        lambda: reset(bot, args),
-                'debug':        lambda: set_debug(bot, args)
+                'debug':        lambda: set_debug(bot, args),
+                'admin':        lambda: admin(bot, args)
             }
             clibrary = {
                 'topic':        lambda: topic(bot, args),
@@ -63,7 +64,9 @@ def read(bot):
             }
             if bot.remote['nick'].lower() not in bot.inv['banned']:
                 if command in alibrary:
-                    if bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]:
+                    can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
+                    can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
+                    if can_do:
                         result = alibrary[command]()
                         bot.previous['user'] = bot.remote['sendee']
                         if result:
@@ -109,7 +112,9 @@ def read(bot):
             autojoin()
 
 def show_help(bot, a, c):
-    if bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]:
+    can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
+    can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
+    if can_do:
         coms = a.keys() + c.keys()
     else:
         coms = c.keys()
@@ -260,9 +265,13 @@ def raw(args):
 
 def set_prefix(bot, args):
     if len(args) > 1:
+        if not re.match("^[!@#\\$%^&*()\[\]{}\\\\|:;\"'<>.,?~`\\-_=+]$", args[1]):
+            return "Invalid prefix."
+        old = bot.prefix
         bot.prefix = args[1]
+        return "Prefix set to %s (was %s)." % (args[1], old)
     else:
-        return give_help(bot, args[0], "<char>")
+        return give_help(bot, args[0], "<one of: !@#$%^&*()[]{}\\|:;\"'<>.,?~`-_=+>")
 
 def set_debug(bot, args):
     result = []
@@ -295,3 +304,35 @@ def reset(bot, args):
             return "Success: %s's cleverbot reset." % bot.remote['receiver'] 
     
     return give_help(bot, args[0], "js|cleverbot")
+
+def admin(bot, args):
+    
+    def multi_delete(list_, *args):
+        indexes = sorted(list(args), reverse=True)
+        for index in indexes:
+            del list_[index]
+        return list_
+    
+    
+    if len(args) > 1:
+        admins = [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
+        if args[1] == "list":
+            return "Admin%s: %s" % ('' if len(admins) == 1 else 's', ', '.join(admins))
+        if args[1] == "add":
+            if len(args) > 2:
+                bot._debug("Adding %d admins: %s." % (len(args[2:]), ', '.join(args[2:])))
+                admins += args[2:]
+                bot.config.set(bot.network, 'admin', ', '.join(admins))
+                return None
+        if args[1] == "remove":
+            if len(args) > 2:
+                if bot.admin in args[2:]:
+                    return "Can't remove root."
+                
+                bot._debug("Removing %d admins: %s." % (len(args[2:]), ', '.join(args[2:])))
+                admins = list(set(admins) - set(args[2:]))
+                bot.config.set(bot.network, 'admin', ', '.join(admins))
+                return None
+    
+    return give_help(bot, args[0], "list|add|remove [nick]")
+

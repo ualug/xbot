@@ -172,7 +172,7 @@ class Parser(Client):
         self.previous = {}
         self.voice = True
         self.name = config.get(self.network, 'nick')
-        self.admin = config.get(self.network, 'admin')
+        self.admin = config.get(self.network, 'admin').split(',')[0]
 
     def interpret(self, line):
         self.remote['server'] = None

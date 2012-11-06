@@ -3,24 +3,23 @@ import peewee
 class BotDB(object):
 
     def __init__(self, bot):
-        self.db = {
-            'sqlite'     : lambda:
-                peewee.SqliteDatabase(bot.config.get('module: botdb', 'path')),        
-            'postgresql' : lambda:
-                peewee.PostgresqlDatabase(
-                    bot.config.get('module: botdb', 'name'),
-                    host=bot.config.get('module: botdb', 'host'),
-                    user=bot.config.get('module: botdb', 'user'),
-                    passwd=bot.config.get('module: botdb', 'pass')
-                ),
-            'postgresql' : lambda:
-                peewee.MysqlDatabase(
-                    bot.config.get('module: botdb', 'name'),
-                    host=bot.config.get('module: botdb', 'host'),
-                    user=bot.config.get('module: botdb', 'user'),
-                    passwd=bot.config.get('module: botdb', 'pass')
-                )
-        }[bot.config.get('module: botdb', 'type')]()
+        dbtype = bot.config.get('module: botdb', 'type')
+        if dbtype == "postgresql":
+            self.db = peewee.PostgresqlDatabase(
+                bot.config.get('module: botdb', 'name'),
+                host=bot.config.get('module: botdb', 'host'),
+                user=bot.config.get('module: botdb', 'user'),
+                passwd=bot.config.get('module: botdb', 'pass')
+            )
+        elif dbtype == "mysql":
+            self.db = peewee.MysqlDatabase(
+                bot.config.get('module: botdb', 'name'),
+                host=bot.config.get('module: botdb', 'host'),
+                user=bot.config.get('module: botdb', 'user'),
+                passwd=bot.config.get('module: botdb', 'pass')
+            )
+        else:
+            self.db = peewee.SqliteDatabase(bot.config.get('module: botdb', 'path'))
 
     def connect(self):
         self.db.connect()

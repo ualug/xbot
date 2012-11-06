@@ -1,6 +1,7 @@
 from util import *
 from pyv8 import PyV8
 from interruptingcow import timeout
+import jsbeautifier
 import subprocess
 import json
 import re
@@ -66,12 +67,15 @@ def execute(bot, args):
             result = unicode(result).encode('utf8')
             
             if re.search("^JSError:", result):
-              bot._debug('Post-processing error message.')
-              result = re.sub("^JSError:\\s", '', result)
-              result = re.sub("\\s[(]\\s+@.+$", '', result)
-              
+                bot._debug('Post-processing error message.')
+                result = re.sub("^JSError:\\s", '', result)
+                result = re.sub("\\s[(]\\s+@.+$", '', result)
             
-            if len(result.split('\n')) > 4 or len(result) > 445:
+            
+            if re.match("^pretty:", result):
+                result = jsbeautifier.beautify(re.sub("^pretty:", '', result))
+            
+            if len(result.split('\n')) > 4 or len(result) > 200:
                 bot._debug('Going to upload to sprunge...')
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
                 for n in range(2):
