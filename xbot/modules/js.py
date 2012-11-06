@@ -5,6 +5,7 @@ from pyv8 import PyV8
 from interruptingcow import timeout
 import jsbeautifier
 import subprocess
+import urllib2
 import json
 import re
 import os
@@ -100,8 +101,15 @@ def js_run(bot, args):
             filters = []
             command = ' '.join(args[1:])
         
-        if args[0] == "cs":
-            filters.append("coffee")
+        if 'http' in filters:
+            bot._debug("Getting js from http: %s" % command)
+            command = urllib2.urlopen(command, timeout = 5).read()
+            filters.remove('http')
+        
+        if 'gist' in filters:
+            bot._debug("Getting js from gist: %s" % command)
+            command = urllib2.urlopen("https://raw.github.com/gist/%s" % command, timeout = 5).read()
+            filters.remove('gist')
         
         result = execute(bot, command, filters)
         
@@ -115,7 +123,7 @@ def js_run(bot, args):
                 service = ['curl', '-F', 'sprunge=<-', 'http://sprunge.us']
                 for n in range(2):
                     p = subprocess.Popen(service, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    paste = p.communicate(input=">>> %s\n\n%s" % (command, result))[0]
+                    paste = p.communicate(input="/* >>> %s\n<<< */\n\n%s" % (command, result))[0]
                     try:
                         util.answer(bot, "%s?js" % re.findall('(http://.*)', paste, re.S)[0].strip())
                         return None
@@ -126,13 +134,14 @@ def js_run(bot, args):
                 bot._debug('Returning locally...')
                 util.answer(bot, result)
     else:
-        if args[0] == "js":
-            util.give_help(bot, args[0], "<js_expr>")
-        elif args[0] == "cs":
-            util.give_help(bot, args[0], "<coffee_expr>")
+        util.give_help(bot, args[0], "[FILTERS:] <expr>")
+        util.answer(bot, "\tAvailable filters: pretty, coffee, http, gist.")
+        util.answer(bot, "\tE.g. %s%s pretty,coffee: <coffee_expr>" % (bot.prefix, args[0]))
+        util.answer(bot, "\t     %s%s http: <url>" % (bot.prefix, args[0]))
+        util.answer(bot, "\t     %s%s gist: <gist_id>" % (bot.prefix, args[0]))
+        
 
 util.register(js_run, "common", "js")
-util.register(js_run, "common", "cs")
 
 def js_reset(bot, args):
     bot._debug('Destroying JS context...')
