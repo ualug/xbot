@@ -1,3 +1,4 @@
+'''
 from util import *
 from pyv8 import PyV8
 from interruptingcow import timeout
@@ -25,16 +26,23 @@ def execute(bot, args):
             'version':  bot.version,
             'users':    bot.inv['rooms'].get(bot.remote['receiver']),
             'rooms':    bot.inv['rooms'].keys(),
-            'prefix':   bot.prefix
+            'prefix':   bot.prefix,
+            'caller':   bot.remote['nick']
         })
+        
+        if args[1] == "pretty:":
+            rawcmd = args[2:]
+        else:
+            rawcmd = args[1:]
+        rawcmd = ' '.join(rawcmd)
         
         command = "((function(){try {\n"
         if args[0] == "js":
-            command += "return %s" % ' '.join(args[1:])
+            command += "return %s" % rawcmd
         elif args[0] == "cs":
-            command += "return CoffeeScript.eval('%s')" % ' '.join(args[1:])
+            command += "return CoffeeScript.eval('%s')" % rawcmd
         elif args[0] == "ts":
-            command += "return TypeScript.eval('%s')" % ' '.join(args[1:])
+            command += "return TypeScript.eval('%s')" % rawcmd
         command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString()"
         
         bot._debug(command)
@@ -72,7 +80,7 @@ def execute(bot, args):
                 result = re.sub("\\s[(]\\s+@.+$", '', result)
             
             
-            if re.match("^pretty:", result):
+            if args[1] == "pretty:":
                 result = jsbeautifier.beautify(re.sub("^pretty:", '', result))
             
             if len(result.split('\n')) > 4 or len(result) > 200:
@@ -103,3 +111,4 @@ def js_reset(bot):
     bot._debug('Destroying JS context...')
     del bot.inv['js']
     return "Success: Javascript context reset."
+'''

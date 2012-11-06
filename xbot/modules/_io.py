@@ -1,12 +1,21 @@
 from util import *
+from pubsub import pub
 import datetime
 import scanner
 import re
 
-# user modules
-import wolframalpha, googleapi, dnstools, tell, hub, cleverbot
-import fun, man, quotes, lotto, eval, imdb, usage, maxx, js
+library = {
+    'admin': {},
+    'common': {}
+}
 
+Bot = ""
+
+def debug(msg):
+    if Bot != "":
+        Bot._debug(msg)
+    else:
+        print msg
 
 def read(bot):
     global Bot
@@ -14,80 +23,35 @@ def read(bot):
     
     if bot.remote['nick'] and bot.remote['nick'] != bot.nick:
         if bot.remote['message'].startswith(bot.prefix):
+            bot._debug("Command received: %s" % bot.remote['message'])
             args = bot.remote['message'][1:].rstrip().split(" ")
             command = args[0].lower()
-            alibrary = {
-                'reload':       lambda: bot._reload(args),
-                'voice':        lambda: voice(args),
-                'nick':         lambda: cnick(args),
-                'release':      lambda: release(args),
-                'identify':     lambda: ident(),
-                'join':         lambda: join(args),
-                'part':         lambda: part(args),
-                'kick':         lambda: kick(args),
-                'mode':         lambda: mode(args),
-                'perms':        lambda: perms(args),
-                'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
-                'raw':          lambda: raw(args),
-                'prefix':       lambda: set_prefix(bot, args),
-                'reset':        lambda: reset(bot, args),
-                'debug':        lambda: set_debug(bot, args),
-                'admin':        lambda: admin(bot, args)
-            }
-            clibrary = {
-                'topic':        lambda: topic(bot, args),
-                'help':         lambda: show_help(bot, alibrary, clibrary),
-                'time':         lambda: time(bot, args),
-                'say':          lambda: say(bot, args),
-                'calc':         lambda: wolframalpha.wa(bot, args),
-                'go':           lambda: googleapi.search(bot, args),
-                'lookup':       lambda: dnstools.lookup(bot, args),
-                'wiki':         lambda: dnstools.wiki(bot, args),
-                'tell':         lambda: tell.answer(bot, args),
-                'twss':         lambda: fun.twss(bot, args),
-                'cookie':       lambda: fun.cookie(bot, args),
-                'spin':         lambda: fun.spin(bot, args),
-                'man':          lambda: man.man(bot, args),
-                'choose':       lambda: fun.choose(bot, args),
-                '8ball':        lambda: fun.m8b(bot, args),
-                'ghetto':       lambda: fun.ghetto(bot, args),
-                'sortinghat':   lambda: fun.sorting_hat(bot, args),
-                'lotto':        lambda: lotto.get_results(bot, args),
-                'quotes':       lambda: quotes.get_quote(bot, args),
-                'imdb':         lambda: imdb.info(bot, args),
-                'usage':        lambda: usage.usage(bot, args),
-                'maxx':         lambda: maxx.times(bot, args),
-                'js':           lambda: js.execute(bot, args),
-                'cs':           lambda: js.execute(bot, args),
-                'ts':           lambda: js.execute(bot, args),
-                'jslib':        lambda: hub.jslib(bot, args)
-            }
+            
             if bot.remote['nick'].lower() not in bot.inv['banned']:
-                if command in alibrary:
+                if command in library['admin']:
+                    bot._debug('This is an admin-only command.')
                     can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
                     can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
                     if can_do:
-                        result = alibrary[command]()
                         bot.previous['user'] = bot.remote['sendee']
-                        if result:
-                            reply(bot.remote['sendee'], result)
+                        pub.sendMessage("func.admin.%s" % library['admin'][command], bot=bot, args=args)
                     else:
                         if bot.voice:
                             reply(bot.remote['sendee'], "%s: Can't do that, noob." % bot.remote['nick'])
-                elif bot.voice and command in clibrary:
-                    try: result = clibrary[command]()
-                    except __import__('urllib2').HTTPError: result = "!%s: derping the herp" % args[0]
-                    except (__import__('urllib2').URLError, __import__('socket').timeout): result = "!%s: response timeout exceeded." % args[0]
+                elif bot.voice and command in library['common']:
+                    bot._debug('This is a common command.')
+                    pub.sendMessage("func.common.%s" % library['common'][command], bot=bot, args=args)
                     bot.previous['user'] = bot.remote['sendee']
-                    if result:
-                        reply(bot.remote['sendee'], result)
+        
         elif bot.remote['message'].startswith("\x01") and bot.remote['message'].endswith("\x01"):
             type = bot.remote['message'][1:-1].split()[0]
             args = bot.remote['message'][1:-1].split()[1:]
             if type != "ACTION":
                 ctcp(type, args)
+        
         elif bot.remote['mid'] == "INVITE" and bot.remote['nick'].lower() not in bot.inv['banned']:
             join([bot.remote['mid'], bot.remote['message']])
+        
         else:
             if bot.init['registered'] and not bot.init['identified']:
                 if bot.remote['nick'] == "NickServ":
@@ -99,11 +63,12 @@ def read(bot):
                         autojoin()
             
             if bot.voice:
+                pass
                 # start scanning messages for certain data
-                try: response = scanner.scan(bot)
-                except (__import__('urllib2').URLError, __import__('socket').timeout): response = "fetch: response timeout exceeded."
-                if response:
-                    reply(bot.remote['sendee'], response)
+                #try: response = scanner.scan(bot)
+                #except (__import__('urllib2').URLError, __import__('socket').timeout): response = "fetch: response timeout exceeded."
+                #if response:
+                #    reply(bot.remote['sendee'], response)
 
     else:
         if (bot.remote['mid'].startswith("4") or bot.remote['mid'].startswith("5")) and bot.remote['mid'] != "462":
@@ -111,15 +76,27 @@ def read(bot):
         if not bot.init['joined'] and not bot.init['registered']:
             autojoin()
 
-def show_help(bot, a, c):
-    can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
-    can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
-    if can_do:
-        coms = a.keys() + c.keys()
-    else:
-        coms = c.keys()
-    
-    return "Available commands: %s" % ', '.join(sorted(coms))
+def lib_register(cat, name, func):
+    global library
+    library[cat][name] = func
+    debug("Register %s command: %s" % (cat, name))
+    lib = {
+        'admin': library['admin'].keys(),
+        'common': library['common'].keys(),
+    }
+    pub.sendMessage("library", lib=lib)
+
+def lib_deregister(cat, name):
+    del library[cat][name]
+    debug("De-register %s command: %s" % (cat, name))
+    lib = {
+        'admin': library['admin'].keys(),
+        'common': library['common'].keys(),
+    }
+    pub.sendMessage("library", lib=lib)
+
+pub.subscribe(lib_register, 'register')
+pub.subscribe(lib_deregister, 'deregister')
 
 def autojoin():
     channels = Bot.config.get(Bot.network, 'channels').split(",")
@@ -139,14 +116,8 @@ def write(args, message = None):
 def reply(nick, message):
     write(("PRIVMSG", nick), message)
 
-def time(bot, args):
-    if len(args) == 1:
-        now = datetime.datetime.now()
-        hour = int(now.strftime("%H"))
-        bedtime = " (bedtime)" if hour >= 0 and hour <= 7 else ''
-        return "It is now %s%s on %s NZT." % (now.strftime("%I:%M%p"), bedtime, now.strftime("%A, %d %B %Y"))
-    else:
-        return give_help(bot, args[0], "")
+pub.subscribe(reply, 'reply')
+
 
 def voice(args):
     args = [arg.lower() for arg in args]
@@ -263,6 +234,26 @@ def raw(args):
     except: message = None
     Bot._sendq(left, message)
 
+def _reload(bot, args):
+    bot._reload(args)
+
+register(_reload, "admin", "reload", "reload")
+
+######################################################################
+'''
+
+
+def show_help(bot, a, c):
+    can_do = bot.remote['host'] in [host.strip() for host in bot.config.get(bot.network, 'admin_hostnames').split(',')]
+    can_do = can_do or bot.remote['nick'] in [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
+    if can_do:
+        coms = a.keys() + c.keys()
+    else:
+        coms = c.keys()
+    
+    return "Available commands: %s" % ', '.join(sorted(coms))
+
+
 def set_prefix(bot, args):
     if len(args) > 1:
         if not re.match("^[!@#\\$%^&*()\[\]{}\\\\|:;\"'<>.,?~`\\-_=+]$", args[1]):
@@ -307,12 +298,7 @@ def reset(bot, args):
 
 def admin(bot, args):
     
-    def multi_delete(list_, *args):
-        indexes = sorted(list(args), reverse=True)
-        for index in indexes:
-            del list_[index]
-        return list_
-    
+    diff = lambda l1,l2: filter(lambda x: x not in l2, l1)
     
     if len(args) > 1:
         admins = [nick.strip() for nick in bot.config.get(bot.network, 'admin').split(',')]
@@ -327,12 +313,62 @@ def admin(bot, args):
         if args[1] == "remove":
             if len(args) > 2:
                 if bot.admin in args[2:]:
-                    return "Can't remove root."
+                    return "Can't remove root, noob."
                 
                 bot._debug("Removing %d admins: %s." % (len(args[2:]), ', '.join(args[2:])))
-                admins = list(set(admins) - set(args[2:]))
+                admins = diff(admins, args[2:])
                 bot.config.set(bot.network, 'admin', ', '.join(admins))
                 return None
     
     return give_help(bot, args[0], "list|add|remove [nick]")
 
+
+
+
+alibrary = {
+                #'reload':       lambda: bot._reload(args),
+                'voice':        lambda: voice(args),
+                'nick':         lambda: cnick(args),
+                'release':      lambda: release(args),
+                'identify':     lambda: ident(),
+                'join':         lambda: join(args),
+                'part':         lambda: part(args),
+                'kick':         lambda: kick(args),
+                'mode':         lambda: mode(args),
+                'perms':        lambda: perms(args),
+                'eval':         lambda: reply(bot.remote['sendee'], eval.parse(bot, args)),
+                'raw':          lambda: raw(args),
+                'prefix':       lambda: set_prefix(bot, args),
+                'reset':        lambda: reset(bot, args),
+                'debug':        lambda: set_debug(bot, args),
+                'admin':        lambda: admin(bot, args)
+            }
+            clibrary = {
+                'topic':        lambda: topic(bot, args),
+                #'help':         lambda: show_help(bot, alibrary, clibrary),
+                'time':         lambda: time(bot, args),
+                'say':          lambda: say(bot, args),
+                'calc':         lambda: wolframalpha.wa(bot, args),
+                'go':           lambda: googleapi.search(bot, args),
+                'lookup':       lambda: dnstools.lookup(bot, args),
+                'wiki':         lambda: dnstools.wiki(bot, args),
+                'tell':         lambda: tell.answer(bot, args),
+                'twss':         lambda: fun.twss(bot, args),
+                'cookie':       lambda: fun.cookie(bot, args),
+                'spin':         lambda: fun.spin(bot, args),
+                'man':          lambda: man.man(bot, args),
+                'choose':       lambda: fun.choose(bot, args),
+                '8ball':        lambda: fun.m8b(bot, args),
+                'ghetto':       lambda: fun.ghetto(bot, args),
+                'sortinghat':   lambda: fun.sorting_hat(bot, args),
+                'lotto':        lambda: lotto.get_results(bot, args),
+                'quotes':       lambda: quotes.get_quote(bot, args),
+                'imdb':         lambda: imdb.info(bot, args),
+                'usage':        lambda: usage.usage(bot, args),
+                'maxx':         lambda: maxx.times(bot, args),
+                'js':           lambda: js.execute(bot, args),
+                'cs':           lambda: js.execute(bot, args),
+                'ts':           lambda: js.execute(bot, args),
+                'jslib':        lambda: hub.jslib(bot, args)
+            }
+'''
