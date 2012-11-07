@@ -74,10 +74,11 @@ def execute(bot, rawcmd, filters = []):
         'users':    bot.inv['rooms'].get(bot.remote['receiver']),
         'rooms':    bot.inv['rooms'].keys(),
         'prefix':   bot.prefix,
-        'caller':   bot.remote['nick']
+        'caller':   bot.remote['nick'],
+        'replies':  []
     })
     
-    command = "((function(){try {\n"
+    command = "var tmp = ((function(){try {\n"
     if 'coffee' in filters:
         command += "return CoffeeScript.eval('%s')" % rawcmd
     elif len(rawcmd.split('\n')) > 1:
@@ -85,7 +86,8 @@ def execute(bot, rawcmd, filters = []):
         command += "\n\nreturn 'Done.';"
     else:
         command += "return %s" % rawcmd
-    command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString()"
+    command += "\n} catch (e) { return e.toString(); } }(this)) || '').toString();"
+    command += "\n if (bot.replies.length == 0) { tmp; } else { bot.replies.join('\\n'); }"
     
     bot._debug('Entering JS context...')
     bot.inv['js'].enter()
