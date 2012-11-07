@@ -189,7 +189,7 @@ def part(bot, args):
     if channel in Bot.inv['rooms']:
         write(("PART", channel))
     else:
-        answer("I'm not in that channel, noob.")
+        util.answer(bot, "I'm not in that channel, noob.")
 
 util.register(part, "admin", "part", "part")
 
@@ -201,7 +201,7 @@ def kick(bot, args):
             if Bot.inv['rooms'][Bot.remote['receiver']][Bot.nick]['mode'] == "o":
                 write(("KICK", Bot.remote['sendee'], args[1]), ' '.join(args[2:]))
             else:
-                answer("No ops lol.")
+                util.answer(bot, "No ops lol.")
     else:
         util.give_help(bot, args[0], "<nick>")
 
