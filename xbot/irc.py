@@ -179,29 +179,37 @@ class Parser(Client):
         self.remote['nick'] = None
         self.remote['user'] = None
         self.remote['host'] = None
+        self.remote['receiver'] = None
         self.remote['misc'] = None
         self.remote['message'] = None
-        self.remote['receiver'] = None
         
-        if line.startswith(":"):
-            _args = ''.join(line.split(":", 1)[1]).split(" :", 1)
-            args = _args[0].split()
-            self.remote['mid'] = args[1]
+        if line.startswith(':'):
+            if ' :' in line:
+                args, trailing = line[1:].split(' :', 1)
+                args = args.split()
+            else:
+                args = line[1:].split()
+                trailing = args[-1]
             
             if "@" in args[0]:
-                _temp = args[0].split("@")
-                self.remote['nick'] = _temp[0].split("!")[0]
-                self.remote['user'] = _temp[0].split("!")[1]
-                self.remote['host'] = _temp[1]
+                client = args[0].split("@")
+                self.remote['nick'] = client[0].split("!")[0]
+                self.remote['user'] = client[0].split("!")[1]
+                self.remote['host'] = client[1]
             else:
                 self.remote['server'] = args[0]
-                
-            try: self.remote['misc'] = args[3:]
-            except IndexError: pass
-            try: self.remote['message'] = _args[1]
-            except IndexError: pass
-            try: self.remote['receiver'] = args[2]
-            except IndexError: pass
+            
+            self.remote['mid'] = args[1]
+            self.remote['message'] = trailing
+            
+            try:
+                self.remote['receiver'] = args[2]
+            except IndexError:
+                pass
+            try:
+                self.remote['misc'] = args[3:]
+            except IndexError:
+                pass
             self._init()
 
             if self.init['ident'] and self.remote['mid'] in ['376', '422']:
@@ -213,13 +221,12 @@ class Parser(Client):
                     try:
                         if self.init['log'] and self.init['joined'] and self.remote['mid'] == "PRIVMSG":
                             modules.logger.log(self, self.remote['sendee'], self.remote['nick'], self.remote['message'])
-                        modules._io.read(self)
+                        modules.io.read(self)
                     except:
                         error_message = "Traceback (most recent call last):\n" + '\n'.join(traceback.format_exc().split("\n")[-4:-1])
                         self._sendq(("NOTICE", self.remote['sendee'] or self.admin), error_message)
                 if self.init['joined']:
-                    self._updateNicks()
-            
+                    self._updateNicks()             
         else:
             arg = line.split(" :")[0]
             message = line.split(" :", 1)[1]
@@ -227,6 +234,7 @@ class Parser(Client):
 
             if arg == "PING":
                 self._sendq(['PONG'], message)
+
 
     def _sendq(self, left, right = None):
         if self.init['log'] and self.init['joined'] and left[0] == "PRIVMSG":
@@ -266,12 +274,9 @@ class Parser(Client):
     def _updateNicks(self):
         if self.remote['mid'] == "JOIN":
             if self.remote['nick'] == self.nick:
-                self.inv['rooms'][self.remote['receiver']] = {}
+                self.inv['rooms'][self.remote['message']] = {}
             else:
-                if self.remote['receiver']:
-                    self.inv['rooms'][self.remote['receiver']][self.remote['nick']] = {}
-                else:
-                    self.inv['rooms'][self.remote['message']][self.remote['nick']] = {}
+                self.inv['rooms'][self.remote['message']][self.remote['nick']] = {}
         elif self.remote['mid'] == "353":
             for user in self.remote['message'].split():
                 self.inv['rooms'][self.remote['misc'][1]][user.lstrip("~.@%+")] = {}
