@@ -1,3 +1,4 @@
+import util
 import subprocess
 import re
 
@@ -18,3 +19,9 @@ def parse(bot, args):
         return "%s%s: error pasting output." % (bot.prefix, args[0])
     else:    
         return result
+
+
+def _eval(bot, args):
+    reply(bot.remote['sendee'], parse(bot, args))
+
+util.register(_eval, "admin", "eval", "eval")
