@@ -36,7 +36,7 @@ def butt_scan(bot):
                                 if random.random() > 0.3:
                                     words[m] = words[m][:-4] + "butt"
             
-                util.answer(bot, append(' '.join(words)))
+                util.answer(bot, ' '.join(words))
 
 pub.subscribe(butt_scan, 'scanner')
 
