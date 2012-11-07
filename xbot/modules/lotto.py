@@ -1,3 +1,5 @@
+import util
+
 import urllib2
 import lxml.etree
 import re
@@ -13,4 +15,6 @@ def get_results(bot, args):
     strike = results[7:11]
     powerball = results[11]
     
-    return "Weekly draw #%d as follows\nLotto: %s, bonus %d, powerball %d. Strike order: %s." % (int(draw), ', '.join(lotto), int(bonus_ball), int(powerball), ', '.join(strike))
+    util.answer(bot, "Weekly draw #%d as follows\nLotto: %s, bonus %d, powerball %d. Strike order: %s." % (int(draw), ', '.join(lotto), int(bonus_ball), int(powerball), ', '.join(strike)))
+
+util.register(get_results, "common", "lotto")

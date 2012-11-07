@@ -12,33 +12,64 @@
 
 ## DEPENDENCIES
 
- - peewee
+- [peewee](http://peewee.readthedocs.org/)
    
    ```
    pip install peewee
    ```
 
-- dnspython
+- [pubsub](http://pubsub.sourceforge.net/)
+   
+   ```
+   pip install pypubsub
+   ```
+
+- [js-beautifier](http://jsbeautifier.org/)
+   
+   ```
+   pip install git+git://github.com/passcod/js-beautify-python.git
+   ```
+
+- [opengraph](https://github.com/erikriver/opengraph)
+   
+   ```
+   pip install opengraph
+   ```
+
+- [PyGithub](https://github.com/jacquev6/PyGithub)
+   
+   ```
+   pip install PyGithub
+   ```
+
+- [dnspython](http://www.dnspython.org/)
    
    ```
    pip install dnspython
    # or use package manager
    ```
 
- - lxml
+- [json](http://simplejson.readthedocs.org)
+   
+   ```
+   pip install simplejson
+   # or use package manager
+   ```
+   
+- [lxml](http://lxml.de/)
    
    ```
    pip install lxml
    # or use package manager
    ```
 
- - pyv8
+- [pyv8](https://code.google.com/p/pyv8/)
    
    On Windows, use the [precompiled package](https://code.google.com/p/pyv8/downloads/list).  
    On Linux, either [compile it](https://code.google.com/p/pyv8/wiki/HowToBuild) or use your package manager.  
    On OS X, either compile it (see above) or use [brokenseal's binary](https://github.com/brokenseal/PyV8-OS-X).
 
- - interruptingcow
+- [interruptingcow](https://bitbucket.org/evzijst/interruptingcow)
 
    ```
    pip install interruptingcow
@@ -69,3 +100,9 @@ There is a special `bot` variable available in JS which contains:
  - The current prefix.
  - The current nicks in the caller's channel and their modes.
  - All channels the bot is in.
+
+
+## CHANGELOG
+
+Historical changes by Milos Ivanovic are in [CHANGELOG](https://github.com/milosivanonic/xbot/blob/master/CHANGELOG).  
+Revision.io changelog: http://revision.io/xbot
