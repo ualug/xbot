@@ -21,7 +21,7 @@
 - [pubsub](http://pubsub.sourceforge.net/)
    
    ```
-   pip install pubsub
+   pip install pypubsub
    ```
 
 - [js-beautifier](http://jsbeautifier.org/)

@@ -5,4 +5,4 @@ interruptingcow
 simplejson
 opengraph
 PyGithub
-pubsub
+pypubsub
