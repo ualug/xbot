@@ -221,7 +221,7 @@ class Parser(Client):
                     try:
                         if self.init['log'] and self.init['joined'] and self.remote['mid'] == "PRIVMSG":
                             modules.logger.log(self, self.remote['sendee'], self.remote['nick'], self.remote['message'])
-                        modules.io.read(self)
+                        modules._io.read(self)
                     except:
                         error_message = "Traceback (most recent call last):\n" + '\n'.join(traceback.format_exc().split("\n")[-4:-1])
                         self._sendq(("NOTICE", self.remote['sendee'] or self.admin), error_message)
@@ -279,10 +279,12 @@ class Parser(Client):
                 self.inv['rooms'][self.remote['message']][self.remote['nick']] = {}
         elif self.remote['mid'] == "353":
             for user in self.remote['message'].split():
-                self.inv['rooms'][self.remote['misc'][1]][user.lstrip("~.@%+")] = {}
-                if __import__('re').search('^[~\.@%\+]', user):
+                self.inv['rooms'][self.remote['misc'][1]][user.lstrip("~.&@%+")] = {}
+                if __import__('re').search('^[~\.@%&\+]', user):
                     if user[0] in ['~', '.']:
                         mode = 'q'
+                    elif user[0] == '&':
+                        mode = 'a'
                     elif user[0] == '@':
                         mode = 'o'
                     elif user[0] == '%':
@@ -349,3 +351,4 @@ class Parser(Client):
             del affected, unaffected
         
         self._sendq(("PRIVMSG", self.remote['sendee']), response)
+
