@@ -45,6 +45,7 @@ def open_graph(bot, url):
             bot._debug('Fetching document title...')
             title = lxml.html.document_fromstring(urllib2.urlopen(url, timeout = 5).read()).xpath("//title/text()")[0]
             title = re.sub("[^a-zA-Z0-9\\.\-\|\s\\\\\\/!@#\$%|^&*(){}\[\]_+=<>,\?'\":;\~\`]", '', title).encode('utf8')
+            title = title.strip()
         except:
             return None
         if title == "Google":
@@ -62,6 +63,8 @@ def og_scan(bot):
         try:
             util.answer(bot, open_graph(bot, url[0]).encode('utf8'))
         except AttributeError:
+            pass
+        except ValueError:
             pass
 
 pub.subscribe(og_scan, 'scanner')
